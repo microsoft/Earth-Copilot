@@ -1,14 +1,29 @@
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/melisabardhi/EC)
 
 # 🌍 Welcome to Earth Copilot!
+**An AI-powered geospatial application that allows you to explore and visualize vast Earth science data using natural language.**
 
-**An AI powered geospatial application that allows you to explore and visualize vast Earth science data using natural language.**
+## 🎯 Tutorial Overview
 
-Earth Copilot leverages advanced AI and semantic understanding to transform natural language queries into interactive geospatial visualizations, enabling researchers and scientists to explore 126+ Microsoft Planetary Computer (MPC) SpatioTemporal Asset Catalog (STAC) collections from global Earth observation missions. The application empowers users to search private, public, or hybrid datasets, query STAC APIs, and generate map visualizations with intelligent answers to Earth science questions.
+Use this tutorial to build your own Earth Copilot in Azure and interact with geospatial data without writing code. Earth Copilot will allow you to:
+- Interact with geospatial data using natural language queries
+- Generate and execute SpatioTemporal Asset Catalog (STAC) API queries
+- Explore 126+ Microsoft Planetary Computer (MPC) STAC collections
+- Search private, public, or hybrid datasets
+- Render diverse STAC collections on Azure maps
+- Integrate Earth Copilot into your own research workflows in Azure
+
+### 📖 About Earth Copilot 2.0
+
+Inspired by the NASA and Microsoft Earth Copilot 1.0 prototype, this version features a production-ready architecture built on modern AI agent frameworks, creating an intelligent system that understands scientific questions, automatically finds the right datasets, and delivers interactive visualizations—all through natural conversation.
+
+Whether you're a scientist or student, Earth Copilot helps you spend less time finding the right data and more time unlocking insights.
+
+🎥 **Watch Satya Nadella introduce NASA Earth Copilot at Microsoft Ignite 2024**: [View Here](https://www.linkedin.com/posts/microsoft_msignite-activity-7265061510635241472-CAYx/?utm_source=share&utm_medium=member_desktop)
 
 ## ✨ What Earth Copilot Does
 
-![alt text](documentation/images/EC.png)
+![Earth Copilot Interface](documentation/images/EC.png)
 
 **1) Queries that require map visualizations**
 - "Show me satellite imagery of Dubai urban expansion in 2020"
@@ -126,6 +141,17 @@ EC/
 
 
 ## 🔧 Environment Set Up
+
+### Prerequisites
+To develop and deploy this application, recommended technical background includes:
+
+- **Azure Cloud Services** - Creating and configuring Azure AI Foundry, Azure Maps, Azure Functions, and Azure AI Search
+- **Python Development** - Backend API development, Azure Functions, and Python package management
+- **React/TypeScript** - Frontend development, Vite build system, and modern JavaScript frameworks
+- **AI/ML Concepts** - Understanding of LLMs, Semantic Kernel, and natural language processing
+- **Geospatial Data** - STAC standards and satellite imagery concepts
+- **Infrastructure as Code** - Bicep templates and Azure resource deployment
+- **Environment Configuration** - Managing API keys, environment variables, and service connections
 
 ### Configure Agent Mode 
 You can deploy this application using Agent mode in Visual Studio Code, your preferred IDE or using Code Spaces directly: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/melisabardhi/EC)
@@ -263,11 +289,11 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## 🤝 Acknowledgments
 
-Earth Copilot 2.0 was advised by Juan Carlos and inspired by NASA's Earth Copilot 1.0 announced at Microsoft Ignite 2024 (🎥 [View Here](https://www.linkedin.com/posts/microsoft_msignite-activity-7265061510635241472-CAYx/?utm_source=share&utm_medium=member_desktop))
+Earth Copilot 2.0 was advised by Juan Carlos Lopez and inspired by NASA's Earth Copilot 1.0 developed by Minh Nguyen.
 
 A big thank you to our collaborators: 
 - **Microsoft Planetary Computer** 
 - **NASA**
-- **Microsoft Team**: Jocelynn Hartwig & Minh Nguyen
+- **Microsoft Team**: Juan Carlos Lopez, Jocelynn Hartwig & Minh Nguyen
 
 *Built for the Earth science community with ❤️ and AI*
