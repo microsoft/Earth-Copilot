@@ -1,0 +1,105 @@
+# Environment variables
+.env
+.env.*
+.env.local
+.env.production
+.env.staging
+.env copy
+
+# Azure Functions local settings
+local.settings.json
+**/local.settings.json
+
+# Exclude example files from being ignored
+!*.example
+!**/*.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Microsoft Planetary Computer reference data (large repository)
+MPC/
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Node modules (for React UI)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# React build output
+earth_copilot/react-ui/dist/
+earth_copilot/react-ui/build/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.vite/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Planetary Computer APIs (external dependency)
+planetary-computer-apis/
+MPC/
+
+# Search storage folder (contains assets and temp files)
+earth_copilot/search_storage/

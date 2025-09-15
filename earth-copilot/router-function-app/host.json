@@ -1,0 +1,33 @@
+{
+  "version": "2.0",
+  "functionTimeout": "00:05:00",
+  "logging": {
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    },
+    "logLevel": {
+      "default": "Debug",
+      "Host.Results": "Debug",
+      "Function": "Debug",
+      "Host.Aggregator": "Debug",
+      "azure.functions_worker": "Debug",
+      "azure.functions_worker.dispatcher": "Debug"
+    },
+    "console": {
+      "isEnabled": true
+    }
+  },
+  "extensions": {
+    "http": {
+      "routePrefix": "api",
+      "maxConcurrentRequests": 100,
+      "maxOutstandingRequests": 200
+    }
+  },
+  "watchDirectories": [
+    "semantic_translator"
+  ]
+}

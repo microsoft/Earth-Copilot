@@ -1,0 +1,34 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AzureWebJobsFeatureFlags": "EnableWorkerIndexing",
+    "PYTHON_ENABLE_WORKER_EXTENSIONS": "0",
+    "PYTHON_THREADPOOL_THREAD_COUNT": "1000",
+    
+    "AZURE_OPENAI_ENDPOINT": "https://your-endpoint.openai.azure.com",
+    "AZURE_OPENAI_API_KEY": "your-azure-openai-api-key",
+    "AZURE_OPENAI_API_VERSION": "2025-01-01-preview",
+    "AZURE_OPENAI_DEPLOYMENT_NAME": "your-deployment-name",
+    
+    "AOAI_ENDPOINT": "https://your-endpoint.openai.azure.com",
+    "AOAI_KEY": "your-azure-openai-api-key",
+    "AOAI_DEPLOYMENT": "your-deployment-name",
+    "AOAI_VERSION": "2025-01-01-preview",
+    
+    "AZURE_MAPS_SUBSCRIPTION_KEY": "your-azure-maps-subscription-key",
+    "AZURE_MAPS_CLIENT_ID": "your-azure-maps-client-id",
+    
+    "PLANETARY_COMPUTER_STAC_URL": "https://planetarycomputer.microsoft.com/api/stac/v1",
+    "STAC_API_URL": "https://planetarycomputer.microsoft.com/api/stac/v1",
+    
+    "ALLOW_CORS": "1",
+    "CORS_ORIGINS": "http://localhost:3000,http://localhost:5173,http://localhost:8080,http://localhost:8000,http://127.0.0.1:3000,http://127.0.0.1:8080"
+  },
+  "Host": {
+    "LocalHttpPort": 7071,
+    "CORS": "*"
+  },
+  "ConnectionStrings": {}
+}
