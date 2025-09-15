@@ -1,0 +1,15 @@
+# azure.yaml file for Earth Copilot
+name: earth-copilot
+metadata:
+  template: earth-copilot@2.0.0
+services:
+  web:
+    project: ./
+    host: containerapp
+    language: python
+    docker:
+      path: ./Dockerfile
+      context: ./
+    env:
+      - PORT=8080
+      - PYTHONPATH=/app

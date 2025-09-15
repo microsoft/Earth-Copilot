@@ -1,0 +1,582 @@
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #111; }
+button { cursor: pointer; }
+.app {
+  display: grid;
+  grid-template-columns: 360px 1fr 420px;
+  grid-template-rows: 100vh;
+}
+.panel { padding: 12px; overflow: auto; border-right: 1px solid #eee; }
+.panel.right { border-right: none; border-left: 1px solid #eee; }
+.h2 { margin: 0 0 8px 0; font-size: 18px; }
+.input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+.list { border: 1px solid #eee; border-radius: 6px; overflow: auto; max-height: 40vh; }
+.list-item { padding: 8px 10px; border-bottom: 1px solid #f4f4f4; }
+.list-item:hover { background: #fafafa; }
+/* Chat styling improvements for better UX */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #fafbfc;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.row.user {
+  justify-content: flex-end;
+}
+
+.row.assistant {
+  justify-content: flex-start;
+}
+
+.msg {
+  padding: 12px 16px;
+  border-radius: 18px;
+  max-width: 70%;
+  word-wrap: break-word;
+  line-height: 1.4;
+  font-size: 14px;
+  position: relative;
+}
+
+.row.user .msg {
+  background: #007acc;
+  color: white;
+  border-bottom-right-radius: 4px;
+  margin-left: auto;
+}
+
+.row.assistant .msg {
+  background: #f1f3f4;
+  color: #333;
+  border-bottom-left-radius: 4px;
+  border: 1px solid #e1e5e9;
+}
+
+.row.assistant .msg a {
+  color: #007acc;
+  text-decoration: none;
+}
+
+.row.assistant .msg a:hover {
+  text-decoration: underline;
+}
+
+/* Reactions styling */
+.reactions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.7;
+}
+
+.reactions:hover {
+  opacity: 1;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+/* Examples styling */
+.examples {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.examples ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+}
+
+.examples li {
+  padding: 10px 14px;
+  margin: 8px 0;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #495057;
+}
+
+.examples li:hover {
+  background: #e9ecef;
+  border-color: #007acc;
+  color: #007acc;
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Loading indicator */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Scrollbar styling for messages */
+.messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Map container and text visibility enhancements */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Azure Maps text visibility improvements */
+.atlas-map {
+  /* Ensure map labels have proper contrast */
+  filter: contrast(1.15) brightness(1.05);
+}
+
+/* Add background overlay for better text readability */
+.atlas-map .mapboxgl-popup-content,
+.atlas-map .atlas-control-container,
+.atlas-map .maplibregl-ctrl-attrib {
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(2px);
+  border-radius: 4px;
+  padding: 4px 8px !important;
+  color: white !important;
+}
+
+/* Enhanced text visibility for Azure Maps labels */
+.atlas-map .maplibregl-ctrl-attrib,
+.atlas-map .mapboxgl-ctrl-attrib,
+.atlas-map .atlas-control-container {
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8), 
+               -1px -1px 2px rgba(255, 255, 255, 0.8),
+               1px -1px 2px rgba(255, 255, 255, 0.8),
+               -1px 1px 2px rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+}
+
+/* Improve map labels and place names visibility */
+.atlas-map canvas {
+  /* Add subtle brightness to make text more visible over dark backgrounds */
+  filter: contrast(1.1) brightness(1.02);
+}
+
+/* Azure Maps label enhancements for better readability over satellite imagery */
+.atlas-map .mapboxgl-ctrl-group .mapboxgl-ctrl-zoom {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Improve style control visibility */
+.atlas-map .atlas-style-control {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(4px);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced map attribution and control styling */
+.atlas-map .atlas-control {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(2px);
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Leaflet map text enhancement for fallback compatibility */
+.leaflet-container text,
+.leaflet-container .leaflet-marker-pane .leaflet-marker-icon,
+.leaflet-container .leaflet-popup-content {
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.9),
+    -2px -2px 4px rgba(0, 0, 0, 0.9),
+    2px -2px 4px rgba(0, 0, 0, 0.9),
+    -2px 2px 4px rgba(0, 0, 0, 0.9),
+    0 0 6px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 700 !important;
+  color: white !important;
+}
+
+/* Force tile layer text to be more visible */
+.leaflet-tile-pane img {
+  /* Slightly increase contrast for satellite tiles */
+  filter: contrast(1.1) brightness(1.05);
+}
+
+/* Map overlay text shadow for better readability on satellite imagery */
+.atlas-map .atlas-label,
+.atlas-map .mapboxgl-popup-content {
+  text-shadow: 
+    1px 1px 3px rgba(0, 0, 0, 0.9),
+    -1px -1px 3px rgba(0, 0, 0, 0.9),
+    1px -1px 3px rgba(0, 0, 0, 0.9),
+    -1px 1px 3px rgba(0, 0, 0, 0.9),
+    0 0 4px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 600 !important;
+  color: white !important;
+}
+
+/* Enhance ALL text labels on the map for better contrast */
+.atlas-map text,
+.atlas-map .mapboxgl-marker,
+.atlas-map .atlas-control-text,
+.atlas-map .maplibregl-ctrl-attrib,
+.atlas-map [class*="label"],
+.atlas-map [class*="text"] {
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.9),
+    -2px -2px 4px rgba(0, 0, 0, 0.9),
+    2px -2px 4px rgba(0, 0, 0, 0.9),
+    -2px 2px 4px rgba(0, 0, 0, 0.9),
+    0 0 6px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 700 !important;
+  color: white !important;
+  font-size: 13px !important;
+}
+
+/* Force better visibility for Azure Maps layer text */
+.atlas-map .mapboxgl-layer[id*="label"] text,
+.atlas-map .mapboxgl-layer[id*="place"] text,
+.atlas-map .mapboxgl-layer[id*="road"] text {
+  text-shadow: 
+    3px 3px 6px rgba(0, 0, 0, 1.0),
+    -3px -3px 6px rgba(0, 0, 0, 1.0),
+    3px -3px 6px rgba(0, 0, 0, 1.0),
+    -3px 3px 6px rgba(0, 0, 0, 1.0),
+    0 0 8px rgba(0, 0, 0, 0.9) !important;
+  stroke: rgba(0, 0, 0, 0.8) !important;
+  stroke-width: 2px !important;
+  fill: white !important;
+  font-weight: 800 !important;
+}
+
+/* Zoom controls styling for better visibility */
+.atlas-map .atlas-control-container .atlas-control {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Map style selector enhancements */
+.atlas-map .atlas-style-control-list {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
+}
+
+/* Map loading state */
+.map-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 16px;
+}
+
+/* Map error state */
+.map-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #f8f9fa;
+  color: #dc3545;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Tooltip for map style suggestions */
+.map-style-tip {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.92);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  max-width: 280px;
+  line-height: 1.4;
+}
+
+.map-style-tip.show {
+  opacity: 1;
+}
+
+/* Landing page prompt styling */
+.landing-prompt {
+  font-size: 18px;
+}
+
+/* Data Catalog Typography & Hierarchy */
+.data-catalog-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  letter-spacing: 0.025em;
+  margin-bottom: 20px;
+}
+
+.data-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.data-section {
+  margin-bottom: 24px;
+}
+
+.data-section .title {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #4b5563 !important;
+  margin-bottom: 12px !important;
+  line-height: 1.4;
+}
+
+/* Dataset Items & Dropdowns */
+.dataset-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dataset-item:hover {
+  border-color: #3b82f6;
+  background-color: #f8fafc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dataset-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.dataset-description {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Dropdown Styling */
+.dropdown-button {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.dropdown-button:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dropdown-button.open {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dropdown-arrow {
+  font-size: 12px;
+  color: #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f9fafb;
+}
+
+.dropdown-item.selected {
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+/* Dataset Description Panel */
+.dataset-description-panel {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.dataset-description-panel h4 {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #1f2937;
+  margin-bottom: 12px !important;
+}
+
+.dataset-description-panel p {
+  font-size: 12px;
+  color: #4b5563;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+/* Loading States */
+.loading {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+  padding: 12px;
+  text-align: center;
+}
+
+/* Empty States */
+.data-section div[style*="font-style: italic"] {
+  font-size: 12px !important;
+  color: #9ca3af !important;
+  padding: 8px 12px;
+  text-align: center;
+  background: #f9fafb;
+  border-radius: 4px;
+  border: 1px dashed #d1d5db;
+}
+
+/* Sidebar Layout Improvements */
+.left {
+  padding: 20px 16px;
+  background: #fafbfc;
+  border-right: 1px solid #e5e7eb;
+}
+
+.left.collapsed {
+  padding: 20px 8px;
+}
+
+/* Collapse Arrow */
+.collapse-arrow {
+  padding: 8px;
+  border-radius: 4px;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  margin-bottom: 16px;
+}
+
+.collapse-arrow:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
