@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import axios, { AxiosInstance } from 'axios';
 
 // Point directly to Docker container since proxy isn't working

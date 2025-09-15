@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 End-to-End Test: California Wildfire Query
 Tests the clean Function App architecture after cleanup

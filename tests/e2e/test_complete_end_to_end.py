@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 Complete End-to-End Test: Router → STAC → Real Satellite Data
 ============================================================

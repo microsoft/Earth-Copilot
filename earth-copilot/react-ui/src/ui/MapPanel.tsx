@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import React, { useEffect, useRef } from 'react';
 import axios from 'axios';
 import type { CollectionInfo } from './App';

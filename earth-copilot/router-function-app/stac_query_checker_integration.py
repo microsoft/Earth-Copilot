@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 STAC Query Checker Integration
 Adds intelligent query analysis and clarification to the semantic translator

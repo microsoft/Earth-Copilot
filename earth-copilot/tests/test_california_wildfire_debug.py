@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 Quick standalone test for semantic translator - diagnose the California wildfire issue
 Run this to quickly test the specific problem we identified

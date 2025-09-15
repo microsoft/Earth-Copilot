@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import React, { useState } from 'react';
 import { Dataset } from '../services/api';
 import DatasetDropdown from './DatasetDropdown';

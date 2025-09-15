@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import React, { useMemo, useState } from 'react';
 import axios from 'axios';
 import type { CollectionLite, CollectionInfo } from './App';

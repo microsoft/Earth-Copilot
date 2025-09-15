@@ -1,4 +1,4 @@
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/melisabardhi/EC)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/earth-copilot)
 
 # 🌍 Welcome to Earth Copilot!
 **An AI-powered geospatial application that allows you to explore and visualize vast Earth science data using natural language.**
@@ -154,7 +154,7 @@ To develop and deploy this application, recommended technical background include
 - **Environment Configuration** - Managing API keys, environment variables, and service connections
 
 ### Configure Agent Mode 
-You can deploy this application using Agent mode in Visual Studio Code, your preferred IDE or using Code Spaces directly: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/melisabardhi/EC)
+You can deploy this application using Agent mode in Visual Studio Code, your preferred IDE or using Code Spaces directly: [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/microsoft/earth-copilot)
 
 ![](documentation/images/vsc_agentmode.png)
 
@@ -283,7 +283,11 @@ Primary collections: goes-cmi, modis-sst | Best for: ocean temperature, water qu
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT License - see [LICENSE.txt](LICENSE.txt) for details.
+
+## Trademarks
+
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general). Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party's policies.
 
 ---
 

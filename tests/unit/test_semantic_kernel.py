@@ -1,5 +1,9 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
+import os
 import sys
-sys.path.append('c:\\Users\\melisabardhi\\OneDrive - Microsoft\\Desktop\\Workspace\\Earth-Copilot\\earth-copilot\\router-function-app')
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'earth-copilot', 'router-function-app'))
 
 try:
     print("Testing Semantic Kernel import...")

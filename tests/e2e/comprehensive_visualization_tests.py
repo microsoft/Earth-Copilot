@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 Comprehensive Visualization Test Suite
 Tests diverse queries across all visualization types and collection categories

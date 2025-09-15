@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 

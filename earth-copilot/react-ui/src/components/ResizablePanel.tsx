@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import React, { useState, useRef, useEffect, ReactNode } from 'react';
 
 interface ResizablePanelProps {

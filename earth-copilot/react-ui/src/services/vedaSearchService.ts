@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 /**
  * Direct VEDA Search Service
  * Bypasses function app for simple AI Search + LLM responses

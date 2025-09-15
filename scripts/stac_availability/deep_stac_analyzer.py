@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/usr/bin/env python3
 """
 Enhanced STAC Collection Analyzer - Deep Probe for Data Availability

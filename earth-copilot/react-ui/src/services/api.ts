@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import axios, { AxiosInstance, AxiosResponse, AxiosError } from 'axios';
 
 // Use Vite proxy for local development to avoid CORS issues

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 Multi-Strategy Enhanced Location Resolver 
 Replaces Nominatim-only approach with comprehensive geographic region resolution

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 Microsoft Planetary Computer Collection Profiles - VERIFIED WORKING COLLECTIONS
 Based on comprehensive STAC availability testing (September 12, 2025)

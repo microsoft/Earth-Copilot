@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 Unified Router+STAC Function with Complete Natural Language Processing
 Handles all 126+ Microsoft Planetary Computer collections with intelligent routing

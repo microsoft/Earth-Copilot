@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 Automated test suite for Semantic Kernel translator functionality
 Tests entity extraction, bbox resolution, and STAC query generation across diverse queries

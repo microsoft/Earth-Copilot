@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import React, { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiService } from '../services/api';

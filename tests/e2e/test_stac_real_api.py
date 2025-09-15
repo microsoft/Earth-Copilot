@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 End-to-End STAC Tests
 Tests actual STAC API calls

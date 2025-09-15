@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 Quick diagnostic test using local.settings.json configuration
 Tests the California wildfire query issue directly

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // Enhanced tile URL generation supporting all STAC collection types
 // Based on Microsoft Planetary Computer Titiler API patterns
 

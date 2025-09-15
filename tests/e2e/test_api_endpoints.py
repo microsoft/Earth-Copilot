@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 End-to-End API Tests
 Tests actual FastAPI endpoints

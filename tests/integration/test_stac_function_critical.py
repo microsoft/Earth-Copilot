@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 Phase 1 Critical Tests: STAC Function App Local Testing
 

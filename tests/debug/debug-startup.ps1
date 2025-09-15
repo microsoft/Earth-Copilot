@@ -69,7 +69,7 @@ if ($conflictPorts.Count -gt 0) {
 
 # Change to workspace directory
 # Path configuration
-$workspaceRoot = "c:\Users\melisabardhi\OneDrive - Microsoft\Desktop\Workspace\Earth-Copilot"
+$workspaceRoot = $PSScriptRoot | Split-Path | Split-Path
 Set-Location $workspaceRoot
 
 # Load .env file if it exists

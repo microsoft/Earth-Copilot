@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 // Collection-specific rendering configuration for STAC data types
 // Based on Microsoft Planetary Computer collection capabilities
 

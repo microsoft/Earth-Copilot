@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 """
 Test script for Router Function App
 Tests the router logic without Azure Functions runtime
