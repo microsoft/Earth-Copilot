@@ -1,0 +1,4 @@
+# Deployment Trigger
+# This file triggers GitHub Actions workflow deployment
+# Timestamp: 2025-10-01 19:30:00
+# Commit: eeba0cd - TileJSON fix + Pin-based GEOINT features

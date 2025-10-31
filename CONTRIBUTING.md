@@ -13,7 +13,7 @@ Thank you for your interest in contributing to Earth Copilot! This document prov
 Before contributing, ensure you have the required technical background:
 
 - **Azure Cloud Services** - Understanding of Azure AI Foundry, Azure Maps, Azure Functions, and Azure AI Search
-- **Python Development** - Experience with Python 3.11+, Azure Functions, and package management
+- **Python Development** - Experience with Python 3.12+, Azure Functions, and package management
 - **React/TypeScript** - Frontend development with modern JavaScript frameworks and Vite
 - **AI/ML Concepts** - Familiarity with LLMs, Semantic Kernel, and natural language processing
 - **Geospatial Data** - Knowledge of STAC (SpatioTemporal Asset Catalog) standards

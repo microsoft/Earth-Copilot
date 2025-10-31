@@ -1,0 +1,68 @@
+# Azure Functions Core - Latest stable versions for Python 3.12
+azure-functions>=1.18.0
+# azure-functions-worker>=1.1.9  # Removed - conflicts with containerized deployment
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Semantic Kernel for AI functionality - Updated to stable version compatible with Pydantic v2
+# semantic-kernel 1.x requires Python 3.10+ and Pydantic v2
+semantic-kernel>=1.0.0,<2.0.0
+
+# Azure SDK dependencies - Updated to stable versions
+azure-identity>=1.15.0
+azure-core>=1.29.0
+azure-ai-projects>=1.0.0b10
+azure-ai-agents>=1.0.0b4
+
+# HTTP client libraries - Pinned versions for stability
+aiohttp>=3.9.0,<4.0.0
+httpx>=0.25.0,<1.0.0
+requests>=2.31.0,<3.0.0
+websockets>=13.0.0,<16.0.0
+
+# Environment and configuration
+python-dotenv>=1.0.0
+
+# Geospatial and STAC functionality
+pystac-client>=0.7.0
+planetary-computer>=1.0.0
+shapely>=2.0.0
+geojson>=3.0.0
+stackstac>=0.4.0
+
+# GEOINT-specific dependencies - Full geospatial processing capabilities
+# rasterio>=1.3.0  # REMOVED: Not needed - terrain analysis uses screenshot + GPT-5 Vision only
+geopy>=2.4.0
+scikit-learn>=1.3.0
+geopandas>=0.14.0
+fiona>=1.9.0
+pyproj>=3.6.0
+
+# Raster data processing for GEOINT analysis
+xarray>=2023.1.0
+rioxarray>=0.15.0
+pandas>=1.5.0
+numpy>=1.24.0,<2.0.0
+
+# Data processing - Pydantic v2 for compatibility
+pydantic>=2.5.0,<3.0.0
+openai>=1.30.0
+structlog>=23.2.0
+
+# Additional dependencies for SK 1.x and Azure Functions deployment
+nest-asyncio>=1.5.0
+typing-extensions>=4.8.0
+scipy>=1.11.0,<2.0.0
+protobuf>=3.5.0,<4.0dev
+cloudevents>=1.9.0
+defusedxml>=0.7.0
+jinja2>=3.1.0
+openapi-core>=0.18.0
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+prance>=0.22.0
+pybars4>=0.9.0
+pydantic-settings>=2.0.0
+
+# EXCLUDED: MCP dependencies causing deployment issues
+# mcp>=1.0.0  # Excluded - causes deployment conflicts with Azure Functions

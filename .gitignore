@@ -10,6 +10,31 @@
 *.userosscache
 *.sln.docstates
 *.env
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Azure specific environment files
+local.settings.json
+.azure/
+*.publish.xml
+*.azurePubxml
+*.pubxml.user
+
+# Secrets and credentials
+*secrets*
+*credentials*
+*.key
+*.pem
+*.pfx
+*.p12
+*.cer
+*.crt
+
+# Deployment configuration files that may contain sensitive data
+earth-copilot-mcp-deployment.json
+deployment-config.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -342,6 +367,38 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 **/__pycache__/
 *.pyc
+
+# Python Virtual Environments
+.venv/
+.env/
+venv/
+ENV/
+env/
+.virtualenv/
+
+# Python compiled files
+*.pyo
+*.pyd
+
+# Azure Functions specific
+local.settings.json
+!local.settings.json.example
+!local.settings.json.template
+
+# Function logs
+*.log
+function_debug.log
+semantic_translator_debug.log
+
+# Azure deployment artifacts
+*.zip
+function-app*.zip
+react-ui*.zip
+webapp-logs/
+
+# Temporary deployment files
+deploy.zip
+*.deploy.zip
 
 # Cake - Uncomment if you are using it
 #tools/**

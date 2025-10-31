@@ -1,0 +1,101 @@
+# GitHub Actions workflow for building and deploying to Azure Container App
+name: Build and Deploy to Azure Container App
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'earth-copilot/container-app/**'
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even without changes'
+        required: false
+        default: 'false'
+
+env:
+  # Update these values to match your Azure resources
+  AZURE_CONTAINER_REGISTRY: your-registry-name  # e.g., myregistry (without .azurecr.io)
+  CONTAINER_APP_NAME: your-container-app-name   # e.g., my-api
+  RESOURCE_GROUP: your-resource-group           # e.g., my-rg
+  IMAGE_NAME: your-image-name                   # e.g., my-api
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: 🛒 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔐 Azure Login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: 🏗️ Build and push container image
+      run: |
+        # Generate unique tag with timestamp
+        IMAGE_TAG=$(date +%Y%m%d%H%M%S)
+        echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+        
+        # Build and push using Azure Container Registry
+        # Build context is earth-copilot/ to include both web-ui and container-app
+        az acr build \
+          --registry ${{ env.AZURE_CONTAINER_REGISTRY }} \
+          --image ${{ env.IMAGE_NAME }}:$IMAGE_TAG \
+          --image ${{ env.IMAGE_NAME }}:latest \
+          --file earth-copilot/container-app/Dockerfile.complete \
+          earth-copilot/
+
+    - name: 🚀 Deploy to Azure Container App
+      run: |
+        # Update container app with new image
+        az containerapp update \
+          --name ${{ env.CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --image ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+          --set-env-vars "DEPLOYMENT_VERSION=${{ env.IMAGE_TAG }}"
+
+    - name: ✅ Verify deployment
+      run: |
+        # Wait for deployment to complete
+        sleep 30
+        
+        # Get the container app URL
+        APP_URL=$(az containerapp show \
+          --name ${{ env.CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --query "properties.configuration.ingress.fqdn" \
+          --output tsv)
+        
+        echo "🌐 Container App URL: https://$APP_URL"
+        
+        # Basic health check
+        if curl -f -s "https://$APP_URL" > /dev/null; then
+          echo "✅ Deployment successful - app is responding"
+        else
+          echo "❌ Deployment may have issues - app not responding"
+          exit 1
+        fi
+
+    - name: 📊 Deployment Summary
+      run: |
+        echo "## 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **Container App:** ${{ env.CONTAINER_APP_NAME }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Resource Group:** ${{ env.RESOURCE_GROUP }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Image Tag:** ${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Registry:** ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io" >> $GITHUB_STEP_SUMMARY
+        
+        APP_URL=$(az containerapp show \
+          --name ${{ env.CONTAINER_APP_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --query "properties.configuration.ingress.fqdn" \
+          --output tsv)
+        echo "- **App URL:** https://$APP_URL" >> $GITHUB_STEP_SUMMARY

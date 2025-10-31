@@ -50,11 +50,6 @@ logs/
 azds.yaml
 charts/
 
-# Docker
-.dockerignore
-docker-compose.override.yml
-.docker/
-
 # Data & Artifacts
 data/
 models/

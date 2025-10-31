@@ -1,0 +1,9 @@
+{
+  "subscriptionKey": "YOUR_AZURE_MAPS_SUBSCRIPTION_KEY_HERE",
+  "region": "atlas",
+  "apiVersion": "2.0",
+  "enableDebug": true,
+  "style": "satellite_road_labels",
+  "zoom": 4,
+  "center": [-98.5795, 39.8282]
+}

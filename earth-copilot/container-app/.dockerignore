@@ -1,0 +1,44 @@
+﻿# Docker ignore file for Earth Copilot Container App
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+**/env
+**/pip-log.txt
+**/pip-delete-this-directory.txt
+**/.tox
+**/.coverage
+**/.coverage.*
+**/.cache
+**/nosetests.xml
+**/coverage.xml
+**/*.cover
+**/*.log
+**/.git
+**/.mypy_cache
+**/.pytest_cache
+**/.hypothesis
+
+# Local development files
+.env
+.vscode/
+.venv/
+__pycache__/
+.funcignore
+*debug.log
+*.zip
+*backup.py
+*test*.py
+
+# Deployment files
+deployment/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

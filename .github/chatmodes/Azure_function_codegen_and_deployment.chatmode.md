@@ -116,7 +116,7 @@ Upon finishing testing, ensure all processes are properly shut down to prevent r
 1. **Policy Violations**: Switch to Azure CLI deployment methods
 2. **Missing Dependencies**: Systematic tool installation and validation
 3. **Authentication Issues**: Comprehensive RBAC and managed identity setup
-4. **Runtime Compatibility**: Use supported versions (Node.js 20+, Python 3.11+)
+4. **Runtime Compatibility**: Use supported versions (Node.js 20+, Python 3.12+)
 5. **Partial Deployments**: Clean resource group deletion before retry
 
 ### Deployment Failure Recovery Protocol
