@@ -13,24 +13,24 @@ import sys
 from dotenv import load_dotenv
 from pathlib import Path
 
-# Load from main .env copy file
-MAIN_ENV_PATH = Path(__file__).parent.parent.parent.parent / ".env copy"
+# Load from root .env file
+ROOT_ENV_PATH = Path(__file__).parent.parent.parent.parent / ".env"
 print(f"Script location: {Path(__file__).parent}")
-print(f"Looking for main .env at: {MAIN_ENV_PATH}")
-print(f"Main .env exists: {MAIN_ENV_PATH.exists()}")
+print(f"Looking for root .env at: {ROOT_ENV_PATH}")
+print(f"Root .env exists: {ROOT_ENV_PATH.exists()}")
 
-if MAIN_ENV_PATH.exists():
-    print(f"Loading environment from main config: {MAIN_ENV_PATH}")
-    load_dotenv(MAIN_ENV_PATH, override=True)
+if ROOT_ENV_PATH.exists():
+    print(f"Loading environment from root config: {ROOT_ENV_PATH}")
+    load_dotenv(ROOT_ENV_PATH, override=True)
 else:
-    print("Main .env copy not found, loading local .env")
+    print("Root .env not found, loading local .env")
     load_dotenv()
 
 # Configuration - map from main env variables
 SEARCH_ENDPOINT = os.getenv("SEARCH_ENDPOINT")
 SEARCH_KEY = os.getenv("SEARCH_API_KEY")  # From main config
 INDEX_NAME = os.getenv("SEARCH_INDEX_NAME", "veda-collections")  # From main config
-AOAI_ENDPOINT = "https://admin-me6cp2y9-eastus2.openai.azure.com"
+AOAI_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "")
 AOAI_KEY = os.getenv("EMBEDDING_KEY", "").strip()  # From main config
 AOAI_VERSION = "2023-05-15"  # From main config embedding API version
 AOAI_DEPLOYMENT = os.getenv("EMBEDDING_NAME", "").strip()  # From main config

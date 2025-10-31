@@ -1,0 +1,71 @@
+# Multi-stage Dockerfile for Complete Earth Copilot Application
+# Stage 1: Build React Frontend
+# Stage 2: Python Backend with Static Files
+
+# =============================================================================
+# STAGE 1: Build React Frontend
+# =============================================================================
+FROM node:18-alpine AS frontend-build
+
+WORKDIR /frontend
+
+# Copy package files for dependency installation
+COPY web-ui/package*.json ./
+
+# Install Node.js dependencies
+RUN npm install
+
+# Copy frontend source code
+COPY web-ui/ ./
+
+# Fix permissions and build the React application for production
+RUN chmod +x node_modules/.bin/* && npm run build
+
+# List contents of dist directory for debugging
+RUN ls -la dist/
+
+# =============================================================================
+# STAGE 2: Python Backend with Static Files
+# =============================================================================
+FROM python:3.12-slim
+
+# Install system dependencies for compilation
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy Python requirements and install dependencies
+COPY container-app/requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy all Python modules
+COPY container-app/*.py ./
+
+# Copy geoint folder (GEOINT agents and modules) from container-app
+COPY container-app/geoint/ ./geoint/
+
+# Create static directory and copy built React app
+RUN mkdir -p /app/static
+COPY --from=frontend-build /frontend/dist/ /app/static/
+
+# Create uploads directory (if needed)
+RUN mkdir -p /app/uploads
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Expose port 8080 (must match Azure Container App targetPort configuration)
+EXPOSE 8080
+
+# Health check (updated to use port 8080)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/api/health || exit 1
+
+# Start the FastAPI application on port 8080
+CMD ["uvicorn", "fastapi_app:app", "--host", "0.0.0.0", "--port", "8080"]

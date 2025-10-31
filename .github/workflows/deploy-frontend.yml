@@ -1,0 +1,105 @@
+# GitHub Actions workflow for building and deploying Frontend to Azure App Service
+name: Deploy Frontend to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'earth-copilot/web-ui/**'
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even without changes'
+        required: false
+        default: 'false'
+
+env:
+  APP_SERVICE_NAME: earthcopilot-web-ui
+  RESOURCE_GROUP: earthcopilot-rg
+  NODE_VERSION: '18.x'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: 🛒 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: earth-copilot/web-ui/package-lock.json
+
+    - name: 📥 Install dependencies
+      working-directory: earth-copilot/web-ui
+      run: npm ci
+
+    - name: 🔨 Build production bundle
+      working-directory: earth-copilot/web-ui
+      run: npm run build
+
+    - name: 📦 Create deployment package
+      working-directory: earth-copilot/web-ui
+      run: |
+        cd dist
+        zip -r ../deploy.zip .
+        cd ..
+        echo "Package size: $(du -h deploy.zip | cut -f1)"
+
+    - name: 🔐 Azure Login
+      uses: azure/login@v2
+      with:
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+    - name: 🚀 Deploy to Azure App Service
+      run: |
+        az webapp deploy \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --name ${{ env.APP_SERVICE_NAME }} \
+          --src-path earth-copilot/web-ui/deploy.zip \
+          --type zip
+
+    - name: ✅ Verify deployment
+      run: |
+        # Wait for deployment to complete
+        sleep 20
+        
+        # Get the App Service URL
+        APP_URL=$(az webapp show \
+          --name ${{ env.APP_SERVICE_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --query "defaultHostName" \
+          --output tsv)
+        
+        echo "🌐 App Service URL: https://$APP_URL"
+        
+        # Basic health check
+        if curl -f -s "https://$APP_URL" > /dev/null; then
+          echo "✅ Deployment successful - frontend is responding"
+        else
+          echo "❌ Deployment may have issues - frontend not responding"
+          exit 1
+        fi
+
+    - name: 📊 Deployment Summary
+      run: |
+        echo "## 🚀 Frontend Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "- **App Service:** ${{ env.APP_SERVICE_NAME }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Resource Group:** ${{ env.RESOURCE_GROUP }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Node Version:** ${{ env.NODE_VERSION }}" >> $GITHUB_STEP_SUMMARY
+        
+        APP_URL=$(az webapp show \
+          --name ${{ env.APP_SERVICE_NAME }} \
+          --resource-group ${{ env.RESOURCE_GROUP }} \
+          --query "defaultHostName" \
+          --output tsv)
+        echo "- **App URL:** https://$APP_URL" >> $GITHUB_STEP_SUMMARY
