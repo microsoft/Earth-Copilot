@@ -1,0 +1,42 @@
+# Earth-Copilot MCP Server Requirements
+
+# MCP Framework (Note: MCP is still in development, may need to install from source)
+# mcp>=1.0.0
+
+# Web framework for HTTP bridge
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+
+# Core dependencies  
+typing-extensions>=4.0.0
+
+# HTTP client for calling Earth-Copilot services
+httpx>=0.25.0
+aiohttp>=3.8.0
+requests>=2.31.0
+
+# Data processing and validation
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+
+# Geospatial libraries (optional, for local processing)
+shapely>=2.0.0
+pyproj>=3.4.0
+
+# Logging and monitoring
+structlog>=23.0.0
+
+# Environment and configuration
+python-dotenv>=1.0.0
+
+# Azure SDK (for deployment and integration)
+azure-functions>=1.18.0
+azure-identity>=1.15.0
+azure-mgmt-apimanagement>=4.0.0
+
+# Development and testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+mypy>=1.0.0
+watchdog>=3.0.0

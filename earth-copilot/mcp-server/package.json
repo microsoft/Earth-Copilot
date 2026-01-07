@@ -1,0 +1,62 @@
+{
+  "name": "earth-copilot-mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for Earth-Copilot geospatial intelligence capabilities",
+  "main": "server.py",
+  "scripts": {
+    "start": "python server.py",
+    "test": "pytest tests/",
+    "lint": "black . && mypy .",
+    "dev": "python -m watchdog server.py"
+  },
+  "keywords": [
+    "mcp",
+    "geospatial",
+    "satellite",
+    "earth-observation", 
+    "gis",
+    "remote-sensing",
+    "geoint"
+  ],
+  "author": "Earth-Copilot Team",
+  "license": "MIT",
+  "dependencies": {
+    "mcp": ">=1.0.0"
+  },
+  "python_requires": ">=3.8",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/microsoft/earth-copilot"
+  },
+  "mcp": {
+    "server": {
+      "name": "earth-copilot",
+      "description": "Geospatial intelligence and Earth observation analysis",
+      "version": "1.0.0",
+      "capabilities": [
+        "tools",
+        "resources", 
+        "prompts"
+      ],
+      "tools": [
+        "analyze_satellite_imagery",
+        "terrain_analysis",
+        "geoint_analysis",
+        "environmental_monitoring",
+        "data_discovery"
+      ],
+      "resources": [
+        "earth://stac/*",
+        "earth://elevation/*",
+        "earth://analysis/*",
+        "earth://context/*"
+      ],
+      "prompts": [
+        "geospatial_expert",
+        "satellite_analyst", 
+        "geoint_specialist",
+        "environmental_scientist"
+      ]
+    }
+  }
+}

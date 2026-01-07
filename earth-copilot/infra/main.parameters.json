@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "earthcopilot"
+    },
+    "location": {
+      "value": "eastus"
+    },
+    "containerImage": {
+      "value": ""
+    },
+    "deployAISearch": {
+      "value": false
+    },
+    "deployModels": {
+      "value": true
+    },
+    "enableAuthentication": {
+      "value": false
+    },
+    "microsoftEntraClientId": {
+      "value": ""
+    },
+    "microsoftEntraTenantId": {
+      "value": ""
+    },
+    "microsoftEntraClientSecret": {
+      "value": ""
+    }
+  }
+}

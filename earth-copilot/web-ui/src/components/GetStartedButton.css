@@ -1,0 +1,618 @@
+/* Get Started Button and Modal Styles */
+
+/* Button styling - matches STAC and Health buttons exactly */
+.get-started-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 120, 212, 0.3);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.get-started-button:hover {
+  background-color: #0078d4;
+  border-color: #0078d4;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+}
+
+.get-started-button svg {
+  transition: transform 0.3s ease;
+}
+
+.get-started-button:hover svg {
+  transform: rotate(15deg);
+}
+
+.get-started-button-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* Modal Overlay */
+.get-started-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Modal Content */
+.get-started-modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 1400px;
+  max-height: 90vh;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Prevent outer scroll, body will handle scrolling */
+}
+
+/* Custom scrollbar styling for modal */
+.get-started-modal-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.get-started-modal-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 0 12px 12px 0;
+}
+
+.get-started-modal-content::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 5px;
+}
+
+.get-started-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Modal Header */
+.get-started-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  border-bottom: 2px solid #f0f0f0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px 12px 0 0;
+}
+
+.get-started-modal-header h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.get-started-modal-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  font-size: 32px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.get-started-modal-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+/* Modal Body */
+.get-started-modal-body {
+  padding: 32px 48px; /* Increased left/right padding */
+  overflow-y: auto;
+}
+
+/* Sections */
+.get-started-section {
+  margin-bottom: 40px;
+}
+
+.get-started-section h3 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+  border-left: 4px solid #667eea;
+  padding-left: 16px;
+}
+
+.get-started-section p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+/* Workflow Steps */
+.workflow-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.workflow-step {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+  transition: all 0.2s ease;
+}
+
+.workflow-step:hover {
+  transform: translateX(8px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.step-number {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.step-content h4 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.step-content p {
+  margin: 0;
+  font-size: 15px;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* Compact Workflow Steps */
+.get-started-section-compact {
+  padding: 16px 0 !important;
+}
+
+.get-started-section-compact h3 {
+  margin-bottom: 12px !important;
+  font-size: 18px !important;
+}
+
+.workflow-steps-compact {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+}
+
+.workflow-step-compact {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  min-width: 70px;
+}
+
+.workflow-step-compact .step-icon {
+  font-size: 20px;
+}
+
+.workflow-step-compact .step-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #555;
+  text-align: center;
+}
+
+.step-arrow {
+  color: #667eea;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Examples Section */
+.examples-subtitle {
+  font-size: 15px;
+  color: #666;
+  font-style: italic;
+  margin-bottom: 24px;
+}
+
+.example-category {
+  margin-bottom: 32px;
+}
+
+.category-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.examples-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.example-card {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.example-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.example-query {
+  font-size: 15px;
+  color: #333;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.example-query strong {
+  color: #667eea;
+}
+
+.example-description {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.example-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.example-dataset {
+  font-size: 12px;
+  color: #888;
+  font-weight: 500;
+}
+
+/* Button container */
+.example-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Shared button styles */
+.copy-query-btn,
+.pc-explorer-btn {
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+/* Go button (formerly Copy) - Purple gradient */
+.copy-query-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.copy-query-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* PC Explorer button - Green/teal gradient to match theme */
+.pc-explorer-btn {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.pc-explorer-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(17, 153, 142, 0.3);
+}
+
+/* Learn More Section */
+.learn-more-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 24px;
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+}
+
+.learn-more-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.learn-more-card {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  border: 2px solid #e0e0e0;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.learn-more-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.learn-more-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.learn-more-card h4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+
+.learn-more-card p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.learn-more-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.learn-more-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Modal Footer */
+.get-started-modal-footer {
+  padding: 20px 32px;
+  border-top: 2px solid #f0f0f0;
+  background: #f8f9fa;
+  border-radius: 0 0 12px 12px;
+}
+
+.get-started-footer-text {
+  margin: 0;
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .examples-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .learn-more-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .get-started-modal-content {
+    width: 100%;
+    max-width: 100%;
+    margin: 10px;
+    max-height: 95vh;
+  }
+
+  .get-started-modal-header {
+    padding: 16px 20px;
+  }
+
+  .get-started-modal-header h2 {
+    font-size: 22px;
+  }
+
+  .get-started-modal-body {
+    padding: 24px 32px; /* Maintain adequate margins on smaller screens */
+  }
+
+  .get-started-section h3 {
+    font-size: 20px;
+  }
+
+  .workflow-step {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .example-card {
+    padding: 12px;
+  }
+
+  .examples-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .get-started-button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .get-started-button span {
+    display: none;
+  }
+
+  .get-started-button svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .get-started-modal-header h2 {
+    font-size: 18px;
+  }
+
+  .get-started-modal-close {
+    width: 32px;
+    height: 32px;
+    font-size: 24px;
+  }
+
+  .example-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .example-buttons {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .copy-query-btn,
+  .pc-explorer-btn {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* Modal Body - Scrollable Content */
+.get-started-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 48px; /* Add proper left/right margins for content */
+  /* Custom scrollbar styling */
+  scrollbar-gutter: stable;
+}
+
+.get-started-modal-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.get-started-modal-body::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.get-started-modal-body::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 5px;
+}
+
+.get-started-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Modal Footer - Fixed at Bottom */
+.get-started-modal-footer {
+  flex-shrink: 0;
+  padding: 20px 32px;
+  border-top: 2px solid #e5e7eb;
+  background: #fefce8;
+  border-radius: 0 0 12px 12px;
+}
+
+.zoom-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 12px;
+  border-left: 4px solid #f59e0b;
+}
+
+.zoom-tip-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.zoom-tip-content {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #92400e;
+}
+
+.zoom-tip-content strong {
+  color: #78350f;
+}

@@ -1,0 +1,3 @@
+# Test dependencies for datetime agent unit tests
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
