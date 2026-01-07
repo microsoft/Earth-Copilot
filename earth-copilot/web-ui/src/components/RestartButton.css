@@ -1,0 +1,39 @@
+/* Copyright (c) Microsoft Corporation. */
+/* Licensed under the MIT license. */
+
+.restart-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 120, 212, 0.3);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  color: #333333;
+}
+
+.restart-button:hover {
+  background-color: #0078d4;
+  border-color: #0078d4;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+}
+
+.restart-button svg {
+  transition: transform 0.3s ease;
+}
+
+.restart-button:hover svg {
+  transform: rotate(-45deg);
+}
+
+.restart-button-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}

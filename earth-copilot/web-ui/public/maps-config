@@ -1,0 +1,9 @@
+{
+  "subscriptionKey": "demo-key",
+  "region": "atlas",
+  "apiVersion": "2.0",
+  "enableDebug": true,
+  "style": "road",
+  "zoom": 10,
+  "center": [-122.4194, 47.6062]
+}

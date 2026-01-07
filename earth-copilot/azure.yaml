@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/refs/heads/main/schemas/v1.0/azure.yaml.json
+
+name: earth-copilot
+metadata:
+  template: earth-copilot@2.0.0
+
+infra:
+  provider: bicep
+
+services:
+  web:
+    project: ./web-ui
+    host: appservice
+    language: js
+    
+  api:
+    project: ./container-app
+    host: containerapp
+    language: python

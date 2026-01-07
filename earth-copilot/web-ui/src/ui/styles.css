@@ -1,0 +1,1016 @@
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; color: #111; }
+button { cursor: pointer; }
+.app {
+  display: grid;
+  grid-template-columns: 360px 1fr 420px;
+  grid-template-rows: 100vh;
+}
+.panel { padding: 12px; overflow: auto; border-right: 1px solid #eee; }
+.panel.right { border-right: none; border-left: 1px solid #eee; }
+.h2 { margin: 0 0 8px 0; font-size: 18px; }
+.input { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; }
+.list { border: 1px solid #eee; border-radius: 6px; overflow: auto; max-height: 40vh; }
+.list-item { padding: 8px 10px; border-bottom: 1px solid #f4f4f4; }
+.list-item:hover { background: #fafafa; }
+/* Chat styling improvements for better UX */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #fafbfc;
+  position: relative;
+}
+
+/* Ensure expanded content from buttons appears above scrollbar */
+.messages .msg,
+.messages .message-wrapper,
+.messages .reactions {
+  position: relative;
+  z-index: 1;
+}
+
+/* Scrollbar should be behind message content */
+.messages::-webkit-scrollbar {
+  z-index: 0;
+}
+
+.row {
+  display: flex;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.row.user {
+  justify-content: flex-end;
+}
+
+.row.assistant {
+  justify-content: flex-start;
+}
+
+.msg {
+  padding: 12px 16px;
+  border-radius: 18px;
+  max-width: 70%;
+  word-wrap: break-word;
+  line-height: 1.4;
+  font-size: 14px;
+  position: relative;
+}
+
+.row.user .msg {
+  background: #007acc;
+  color: white;
+  border-bottom-right-radius: 4px;
+  margin-left: auto;
+}
+
+.row.assistant .msg {
+  background: #f1f3f4;
+  color: #333;
+  border-bottom-left-radius: 4px;
+  border: 1px solid #e1e5e9;
+}
+
+.row.assistant .msg a {
+  color: #007acc;
+  text-decoration: none;
+}
+
+.row.assistant .msg a:hover {
+  text-decoration: underline;
+}
+
+/* Reactions styling */
+.reactions {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  opacity: 0.7;
+}
+
+.reactions:hover {
+  opacity: 1;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #666;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+/* Examples styling */
+.examples {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.examples ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+}
+
+.examples li {
+  padding: 10px 14px;
+  margin: 8px 0;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #495057;
+}
+
+.examples li:hover {
+  background: #e9ecef;
+  border-color: #007acc;
+  color: #007acc;
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* Loading indicator */
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Scrollbar styling for messages */
+.messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Map container and text visibility enhancements */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Azure Maps text visibility improvements */
+.atlas-map {
+  /* Ensure map labels have proper contrast */
+  filter: contrast(1.15) brightness(1.05);
+}
+
+/* Add background overlay for better text readability */
+.atlas-map .mapboxgl-popup-content,
+.atlas-map .atlas-control-container,
+.atlas-map .maplibregl-ctrl-attrib {
+  background: rgba(0, 0, 0, 0.7) !important;
+  backdrop-filter: blur(2px);
+  border-radius: 4px;
+  padding: 4px 8px !important;
+  color: white !important;
+}
+
+/* Enhanced text visibility for Azure Maps labels */
+.atlas-map .maplibregl-ctrl-attrib,
+.atlas-map .mapboxgl-ctrl-attrib,
+.atlas-map .atlas-control-container {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9), 
+               -2px -2px 4px rgba(0, 0, 0, 0.9),
+               2px -2px 4px rgba(0, 0, 0, 0.9),
+               -2px 2px 4px rgba(0, 0, 0, 0.9),
+               0 0 6px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 700 !important;
+  color: white !important;
+  font-size: 14px !important;
+}
+
+/* Improve map labels and place names visibility */
+.atlas-map canvas {
+  /* Add subtle brightness to make text more visible over dark backgrounds */
+  filter: contrast(1.1) brightness(1.02);
+}
+
+/* Azure Maps label enhancements for better readability over satellite imagery */
+.atlas-map .mapboxgl-ctrl-group .mapboxgl-ctrl-zoom {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Improve style control visibility */
+.atlas-map .atlas-style-control {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(4px);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced map attribution and control styling */
+.atlas-map .atlas-control {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(2px);
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Leaflet map text enhancement for fallback compatibility */
+.leaflet-container text,
+.leaflet-container .leaflet-marker-pane .leaflet-marker-icon,
+.leaflet-container .leaflet-popup-content {
+  text-shadow: 
+    2px 2px 4px rgba(0, 0, 0, 0.9),
+    -2px -2px 4px rgba(0, 0, 0, 0.9),
+    2px -2px 4px rgba(0, 0, 0, 0.9),
+    -2px 2px 4px rgba(0, 0, 0, 0.9),
+    0 0 6px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 700 !important;
+  color: white !important;
+}
+
+/* Force tile layer text to be more visible */
+.leaflet-tile-pane img {
+  /* Slightly increase contrast for satellite tiles */
+  filter: contrast(1.1) brightness(1.05);
+}
+
+/* Map overlay text shadow for better readability on satellite imagery */
+.atlas-map .atlas-label,
+.atlas-map .mapboxgl-popup-content {
+  text-shadow: 
+    1px 1px 3px rgba(0, 0, 0, 0.9),
+    -1px -1px 3px rgba(0, 0, 0, 0.9),
+    1px -1px 3px rgba(0, 0, 0, 0.9),
+    -1px 1px 3px rgba(0, 0, 0, 0.9),
+    0 0 4px rgba(0, 0, 0, 0.8) !important;
+  font-weight: 600 !important;
+  color: white !important;
+}
+
+/* Enhance ALL text labels on the map for better contrast */
+.atlas-map text,
+.atlas-map .mapboxgl-marker,
+.atlas-map .atlas-control-text,
+.atlas-map .maplibregl-ctrl-attrib,
+.atlas-map [class*="label"],
+.atlas-map [class*="text"],
+.atlas-map .mapboxgl-popup-content,
+.atlas-map .atlas-popup-content {
+  text-shadow: 
+    3px 3px 6px rgba(0, 0, 0, 0.95),
+    -3px -3px 6px rgba(0, 0, 0, 0.95),
+    3px -3px 6px rgba(0, 0, 0, 0.95),
+    -3px 3px 6px rgba(0, 0, 0, 0.95),
+    0 0 8px rgba(0, 0, 0, 0.9) !important;
+  font-weight: 800 !important;
+  color: white !important;
+  font-size: 14px !important;
+  font-family: 'Segoe UI', Arial, sans-serif !important;
+}
+
+/* MAXIMUM VISIBILITY FOR MAP LABELS AND STREET TEXT */
+.atlas-map .mapboxgl-layer[id*="label"] text,
+.atlas-map .mapboxgl-layer[id*="place"] text,
+.atlas-map .mapboxgl-layer[id*="road"] text,
+.atlas-map .mapboxgl-layer[id*="street"] text,
+.atlas-map .mapboxgl-layer[id*="poi"] text,
+.atlas-map canvas[style*="z-index"] {
+  text-shadow: 
+    /* Ultra-strong black outline for maximum contrast */
+    5px 5px 0 rgba(0, 0, 0, 1),
+    -5px -5px 0 rgba(0, 0, 0, 1),
+    5px -5px 0 rgba(0, 0, 0, 1),
+    -5px 5px 0 rgba(0, 0, 0, 1),
+    /* Additional shadow layers for depth */
+    6px 6px 12px rgba(0, 0, 0, 0.95),
+    -6px -6px 12px rgba(0, 0, 0, 0.95),
+    6px -6px 12px rgba(0, 0, 0, 0.95),
+    -6px 6px 12px rgba(0, 0, 0, 0.95),
+    /* Strong glow for visibility */
+    0 0 15px rgba(0, 0, 0, 0.95) !important;
+  font-weight: 900 !important;
+  color: #ffffff !important;
+  font-size: 15px !important;
+  stroke: rgba(0, 0, 0, 0.9) !important;
+  stroke-width: 2px !important;
+}
+
+/* ENHANCED MAP TEXT VISIBILITY - BRIGHT WHITE WITH BLACK OUTLINE */
+.atlas-map * {
+  color: #ffffff !important;
+  text-shadow: 
+    /* Strong black outline in all directions */
+    3px 3px 0 rgba(0, 0, 0, 1),
+    -3px -3px 0 rgba(0, 0, 0, 1),
+    3px -3px 0 rgba(0, 0, 0, 1),
+    -3px 3px 0 rgba(0, 0, 0, 1),
+    /* Additional shadow for depth */
+    4px 4px 8px rgba(0, 0, 0, 0.95),
+    -4px -4px 8px rgba(0, 0, 0, 0.95),
+    4px -4px 8px rgba(0, 0, 0, 0.95),
+    -4px 4px 8px rgba(0, 0, 0, 0.95),
+    /* Glow effect for visibility */
+    0 0 10px rgba(0, 0, 0, 0.9) !important;
+  font-weight: 800 !important;
+  font-size: 15px !important;
+  stroke: rgba(0, 0, 0, 1) !important;
+  stroke-width: 3px !important;
+}
+
+/* TARGET AZURE MAPS GL JS TEXT - MAXIMUM VISIBILITY */
+.atlas-map .mapboxgl-map * {
+  color: #ffffff !important;
+  text-shadow: 
+    /* Ultra-strong black outline */
+    4px 4px 0 rgba(0, 0, 0, 1),
+    -4px -4px 0 rgba(0, 0, 0, 1),
+    4px -4px 0 rgba(0, 0, 0, 1),
+    -4px 4px 0 rgba(0, 0, 0, 1),
+    /* Enhanced shadow for depth */
+    5px 5px 10px rgba(0, 0, 0, 0.95),
+    -5px -5px 10px rgba(0, 0, 0, 0.95),
+    5px -5px 10px rgba(0, 0, 0, 0.95),
+    -5px 5px 10px rgba(0, 0, 0, 0.95),
+    /* Strong glow for visibility over any background */
+    0 0 12px rgba(0, 0, 0, 0.95) !important;
+  font-weight: 900 !important;
+  font-size: 16px !important;
+}
+
+/* Zoom controls styling for better visibility */
+.atlas-map .atlas-control-container .atlas-control {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Map style selector enhancements */
+.atlas-map .atlas-style-control-list {
+  background: rgba(255, 255, 255, 0.98) !important;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(8px);
+  font-family: "Segoe UI", "Segoe UI Variable Text", -apple-system, BlinkMacSystemFont, system-ui, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans" !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.atlas-map .atlas-style-control-list .atlas-style-control-list-item {
+  font-family: "Segoe UI", "Segoe UI Variable Text", -apple-system, BlinkMacSystemFont, system-ui, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans" !important;
+  font-size: 14px !important;
+  color: #1f2937 !important;
+  padding: 8px 12px !important;
+  border-radius: 4px !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.atlas-map .atlas-style-control-list .atlas-style-control-list-item:hover {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  color: #1e40af !important;
+}
+
+/* Map loading state */
+.map-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 16px;
+}
+
+/* Map error state */
+.map-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: #f8f9fa;
+  color: #dc3545;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+}
+
+/* Tooltip for map style suggestions */
+.map-style-tip {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.92);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  max-width: 280px;
+  line-height: 1.4;
+}
+
+.map-style-tip.show {
+  opacity: 1;
+}
+
+/* Landing page prompt styling */
+.landing-prompt {
+  font-size: 18px;
+  padding: 12px 24px;
+  border-radius: 8px;
+}
+
+/* Data Catalog Typography & Hierarchy */
+.data-catalog-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  letter-spacing: 0.025em;
+  margin-bottom: 20px;
+}
+
+.data-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.data-section {
+  margin-bottom: 24px;
+}
+
+.data-section .title {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #4b5563 !important;
+  margin-bottom: 12px !important;
+  line-height: 1.4;
+}
+
+/* Dataset Items & Dropdowns */
+.dataset-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dataset-item:hover {
+  border-color: #3b82f6;
+  background-color: #f8fafc;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dataset-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+
+.dataset-description {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Dropdown Styling */
+.dropdown-button {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.dropdown-button:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dropdown-button.open {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.dropdown-arrow {
+  font-size: 12px;
+  color: #6b7280;
+  transition: transform 0.2s ease;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+  padding: 10px 12px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background-color: #f9fafb;
+}
+
+.dropdown-item.selected {
+  background-color: #eff6ff;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+/* Dataset Description Panel */
+.dataset-description-panel {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 16px;
+  margin-top: 16px;
+}
+
+.dataset-description-panel h4 {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #1f2937;
+  margin-bottom: 12px !important;
+}
+
+.dataset-description-panel p {
+  font-size: 12px;
+  color: #4b5563;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+/* Loading States */
+.loading {
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+  padding: 12px;
+  text-align: center;
+}
+
+/* Empty States */
+.data-section div[style*="font-style: italic"] {
+  font-size: 12px !important;
+  color: #9ca3af !important;
+  padding: 8px 12px;
+  text-align: center;
+  background: #f9fafb;
+  border-radius: 4px;
+  border: 1px dashed #d1d5db;
+}
+
+/* Sidebar Layout Improvements */
+.left {
+  padding: 20px 16px;
+  background: #fafbfc;
+  border-right: 1px solid #e5e7eb;
+}
+
+.left.collapsed {
+  padding: 20px 8px;
+}
+
+/* Collapse Arrow */
+.collapse-arrow {
+  padding: 8px;
+  border-radius: 4px;
+  color: #6b7280;
+  transition: all 0.2s ease;
+  margin-bottom: 16px;
+}
+
+.collapse-arrow:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+/* Spinner animation for map tile expansion */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* =============================================================================
+   GEOINT OVERLAY STYLES
+   ============================================================================= */
+
+.geoint-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 320px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(248, 250, 252, 0.7) 50%, rgba(241, 245, 249, 0.8) 100%);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(12px);
+  z-index: 1000;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.geoint-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px 8px 0 0;
+}
+
+.geoint-header h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.geoint-header .close-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.geoint-header .close-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.geoint-content {
+  padding: 16px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.analysis-info {
+  margin-bottom: 16px;
+}
+
+.analysis-info p {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  color: #374151;
+}
+
+.terrain-controls {
+  margin-top: 12px;
+}
+
+.terrain-controls label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.terrain-controls select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 12px;
+  background: white;
+}
+
+.mobility-stats {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: 12px;
+}
+
+.stat-item:last-child {
+  margin-bottom: 0;
+}
+
+.go-indicator {
+  color: #10b981;
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.slow-go-indicator {
+  color: #f59e0b;
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.no-go-indicator {
+  color: #ef4444;
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.los-info {
+  margin-top: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.los-info p {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+}
+
+.los-info p:last-child {
+  margin-bottom: 0;
+}
+
+.visibility-status {
+  font-weight: 600;
+}
+
+.visibility-status.visible {
+  color: #10b981;
+}
+
+.visibility-status.blocked {
+  color: #ef4444;
+}
+
+.geoint-legend {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 16px;
+}
+
+.geoint-legend h4 {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.color-box {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  margin-right: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.go-color {
+  background-color: #10b981;
+}
+
+.slow-go-color {
+  background-color: #f59e0b;
+}
+
+.no-go-color {
+  background-color: #ef4444;
+}
+
+.terrain-legend .legend-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.mobility-legend .legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* GEOINT overlay responsive adjustments */
+@media (max-width: 768px) {
+  .geoint-controls {
+    width: 280px;
+    right: 5px;
+    top: 5px;
+  }
+  
+  .geoint-content {
+    max-height: 300px;
+  }
+  
+  .terrain-legend .legend-items {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* GEOINT Map Integration Styles */
+.geoint-map-marker {
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.geoint-map-marker.observer {
+  background-color: #3b82f6;
+}
+
+.geoint-map-marker.target-visible {
+  background-color: #10b981;
+}
+
+.geoint-map-marker.target-blocked {
+  background-color: #ef4444;
+}
+
+.geoint-map-marker.obstruction {
+  background-color: #f59e0b;
+}
+
+/* Pulse animation for active markers */
+@keyframes geoint-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+.geoint-map-marker.active {
+  animation: geoint-pulse 2s infinite;
+}
+
+/* ============================================================================
+   AZURE MAPS TEXT ENHANCEMENT FOR SATELLITE TILE VISIBILITY
+   ============================================================================
+   Ensures ALL text labels (cities, roads, POIs) are readable over satellite imagery
+   by enforcing vivid white text with black outlines across the entire map canvas.
+   ============================================================================ */
+
+/* Enhanced text visibility for Azure Maps labels over satellite tiles */
+.enhanced-text-visibility canvas,
+.enhanced-text-visibility .azure-maps-control-container canvas {
+  /* CSS text rendering enhancement - forces crisp text */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Global CSS variables for consistent text styling */
+.enhanced-text-visibility {
+  --map-text-color: #FFFFFF;
+  --map-text-stroke: #000000;
+  --map-text-stroke-width: 3px;
+}
+
+/* Force all Azure Maps text elements to use enhanced visibility styling */
+.azure-maps-control-container text,
+.azure-maps-control-container tspan {
+  fill: var(--map-text-color, #FFFFFF) !important;
+  stroke: var(--map-text-stroke, #000000) !important;
+  stroke-width: var(--map-text-stroke-width, 3px) !important;
+  paint-order: stroke fill !important; /* Draw stroke behind fill */
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+  font-weight: 600 !important;
+  opacity: 1.0 !important;
+}
+
+/* Enhanced readability for map labels */
+.azure-maps-control-container {
+  /* Ensure high contrast text rendering */
+  filter: contrast(1.1) brightness(1.05);
+}
+
+/* Specific enhancement for Azure Maps symbol layers (city/POI labels) */
+.azure-maps-control-container .mapboxgl-canvas,
+.azure-maps-control-container .maplibregl-canvas {
+  /* Force GPU acceleration for smooth text rendering */
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Override any Azure Maps default text opacity */
+.azure-maps-control-container [class*="label"],
+.azure-maps-control-container [class*="text"],
+.azure-maps-control-container [class*="symbol"] {
+  opacity: 1.0 !important;
+}
+
+/* Ensure text is always on top of satellite tiles */
+.azure-maps-control-container [class*="label-layer"],
+.azure-maps-control-container [class*="text-layer"],
+.azure-maps-control-container [class*="symbol-layer"] {
+  z-index: 1000 !important;
+}
+

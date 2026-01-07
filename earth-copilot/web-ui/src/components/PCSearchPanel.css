@@ -1,0 +1,255 @@
+/* Planetary Computer Search Panel Styles */
+
+.pc-search-panel {
+  background: white;
+  border: 2px solid #4A90E2;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.1);
+}
+
+.pc-search-header {
+  margin-bottom: 16px;
+  border-bottom: 2px solid #4A90E2;
+  padding-bottom: 12px;
+}
+
+.pc-search-header h3 {
+  margin: 0 0 4px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2C5282;
+}
+
+.pc-search-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #718096;
+  font-style: italic;
+}
+
+.pc-search-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pc-search-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pc-search-field label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2D3748;
+  margin-bottom: 2px;
+}
+
+.pc-search-select,
+.pc-search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #CBD5E0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #2D3748;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.pc-search-select:focus,
+.pc-search-input:focus {
+  outline: none;
+  border-color: #4A90E2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.pc-search-select:hover,
+.pc-search-input:hover {
+  border-color: #4A90E2;
+}
+
+.pc-search-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232D3748' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+.pc-search-select optgroup {
+  font-weight: bold;
+  color: #2C5282;
+  background: #EBF8FF;
+}
+
+.pc-search-select option {
+  font-weight: normal;
+  color: #2D3748;
+  background: white;
+  padding: 4px;
+}
+
+.pc-search-hint {
+  font-size: 12px;
+  color: #718096;
+  font-style: italic;
+  margin-top: -2px;
+}
+
+/* Time Header with Range Toggle */
+.pc-search-time-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.pc-search-range-toggle {
+  background: #E2E8F0;
+  border: 1.5px solid #CBD5E0;
+  color: #2D3748;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pc-search-range-toggle:hover {
+  background: #CBD5E0;
+  border-color: #4A90E2;
+}
+
+.pc-search-range-toggle.active {
+  background: #4A90E2;
+  border-color: #2C5282;
+  color: white;
+}
+
+/* Date Range Inputs */
+.pc-search-date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pc-search-date-input {
+  flex: 1;
+}
+
+.pc-search-date-separator {
+  font-size: 14px;
+  color: #718096;
+  font-weight: 500;
+  padding: 0 4px;
+}
+
+/* Search Button */
+.pc-search-button {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #4A90E2 0%, #357ABD 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
+}
+
+.pc-search-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #357ABD 0%, #2C5282 100%);
+  box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+  transform: translateY(-1px);
+}
+
+.pc-search-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
+}
+
+.pc-search-button:disabled {
+  background: #CBD5E0;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.pc-search-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Loading Spinner */
+.pc-search-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: pc-search-spin 0.6s linear infinite;
+}
+
+@keyframes pc-search-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .pc-search-panel {
+    padding: 12px;
+  }
+
+  .pc-search-header h3 {
+    font-size: 16px;
+  }
+
+  .pc-search-subtitle {
+    font-size: 12px;
+  }
+
+  .pc-search-date-range {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pc-search-date-separator {
+    display: none;
+  }
+
+  .pc-search-button {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pc-search-select,
+  .pc-search-input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .pc-search-field label {
+    font-size: 13px;
+  }
+
+  .pc-search-hint {
+    font-size: 11px;
+  }
+}

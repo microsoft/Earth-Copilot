@@ -1,0 +1,65 @@
+# Environment files
+.env
+.env.*
+!**/.env_template
+!**/.env.example
+earth-copilot/.env
+planetary_computer/.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+*.egg-info/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Node / Frontend
+node_modules/
+**/node_modules/
+dist/
+build/
+.parcel-cache/
+.vite/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/settings.json
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Azure & Deployment
+.azure/
+*.publish
+.azurewebsites/
+azds.yaml
+charts/
+
+# Data & Artifacts
+data/
+models/
+checkpoints/
+*.pkl
+*.joblib
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Legacy/Generated
+planetary_computer_apis/planetary-computer-apis/
