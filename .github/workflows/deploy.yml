@@ -208,15 +208,26 @@ jobs:
           echo "container_registry_name=$ACR_NAME" >> $GITHUB_OUTPUT
           echo "  ✅ Container Registry: $ACR_NAME"
           
-          # Discover Container App
-          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
-          if [ -z "$CA_NAME" ]; then
-            echo "❌ No Container App found in ${{ env.RESOURCE_GROUP }}"
+          # Discover Container App Environment
+          CAE_NAME=$(az containerapp env list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$CAE_NAME" ]; then
+            echo "❌ No Container App Environment found in ${{ env.RESOURCE_GROUP }}"
             echo "   Run infrastructure deployment first!"
             exit 1
           fi
-          echo "container_app_name=$CA_NAME" >> $GITHUB_OUTPUT
-          echo "  ✅ Container App: $CA_NAME"
+          echo "container_app_env_name=$CAE_NAME" >> $GITHUB_OUTPUT
+          echo "  ✅ Container App Environment: $CAE_NAME"
+          
+          # Discover Container App (may not exist yet on first deploy)
+          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$CA_NAME" ]; then
+            echo "  ℹ️ No Container App found - will create one"
+            echo "container_app_exists=false" >> $GITHUB_OUTPUT
+          else
+            echo "container_app_name=$CA_NAME" >> $GITHUB_OUTPUT
+            echo "container_app_exists=true" >> $GITHUB_OUTPUT
+            echo "  ✅ Container App: $CA_NAME"
+          fi
 
       - name: Build and Deploy Backend
         id: deploy
@@ -224,6 +235,8 @@ jobs:
           echo "🐳 Building and deploying backend..."
           
           ACR_NAME="${{ steps.discover.outputs.container_registry_name }}"
+          CAE_NAME="${{ steps.discover.outputs.container_app_env_name }}"
+          CA_EXISTS="${{ steps.discover.outputs.container_app_exists }}"
           CA_NAME="${{ steps.discover.outputs.container_app_name }}"
           
           cd earth-copilot/container-app
@@ -247,12 +260,112 @@ jobs:
             --resource-group "${{ env.RESOURCE_GROUP }}" \
             --query "loginServer" -o tsv)
           
-          # Update Container App
-          az containerapp update \
-            --name "$CA_NAME" \
-            --resource-group "${{ env.RESOURCE_GROUP }}" \
-            --image "${ACR_LOGIN_SERVER}/earthcopilot-api:${IMAGE_TAG}" \
-            --output none
+          if [ "$CA_EXISTS" == "true" ]; then
+            # Update existing Container App
+            echo "📦 Updating existing Container App..."
+            az containerapp update \
+              --name "$CA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --image "${ACR_LOGIN_SERVER}/earthcopilot-api:${IMAGE_TAG}" \
+              --output none
+          else
+            # Create new Container App
+            echo "🆕 Creating new Container App..."
+            CA_NAME="ca-earthcopilot-api"
+            
+            # Get AI Foundry endpoint (key may not be available if local auth is disabled)
+            AZURE_OPENAI_NAME=$(az cognitiveservices account list --resource-group ${{ env.RESOURCE_GROUP }} --query "[?kind=='OpenAI'].name | [0]" -o tsv)
+            AZURE_OPENAI_KEY=""
+            USE_MANAGED_IDENTITY="false"
+            if [ -n "$AZURE_OPENAI_NAME" ]; then
+              AZURE_OPENAI_ENDPOINT=$(az cognitiveservices account show --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "properties.endpoint" -o tsv)
+              # Check if local auth is disabled
+              LOCAL_AUTH_DISABLED=$(az cognitiveservices account show --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "properties.disableLocalAuth" -o tsv)
+              if [ "$LOCAL_AUTH_DISABLED" == "true" ]; then
+                echo "  ℹ️ Azure OpenAI has local auth disabled - will use managed identity"
+                USE_MANAGED_IDENTITY="true"
+              else
+                AZURE_OPENAI_KEY=$(az cognitiveservices account keys list --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "key1" -o tsv 2>/dev/null || echo "")
+              fi
+              echo "  ✅ Found Azure OpenAI: $AZURE_OPENAI_NAME"
+            else
+              AZURE_OPENAI_ENDPOINT=""
+              echo "  ⚠️ No Azure OpenAI found - app will use fallback settings"
+            fi
+            
+            # Get Application Insights connection string
+            APPINSIGHTS_NAME=$(az monitor app-insights component list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+            if [ -n "$APPINSIGHTS_NAME" ]; then
+              APPINSIGHTS_CS=$(az monitor app-insights component show --app "$APPINSIGHTS_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "connectionString" -o tsv)
+              echo "  ✅ Found Application Insights: $APPINSIGHTS_NAME"
+            else
+              APPINSIGHTS_CS=""
+            fi
+            
+            # Create Container App with managed identity
+            az containerapp create \
+              --name "$CA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --environment "$CAE_NAME" \
+              --image "${ACR_LOGIN_SERVER}/earthcopilot-api:${IMAGE_TAG}" \
+              --target-port 8080 \
+              --ingress external \
+              --cpu 1.0 \
+              --memory 2.0Gi \
+              --min-replicas 1 \
+              --max-replicas 3 \
+              --system-assigned \
+              --env-vars \
+                "PORT=8080" \
+                "STAC_API_URL=https://planetarycomputer.microsoft.com/api/stac/v1" \
+                "CORS_ORIGINS=*" \
+                "AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}" \
+                "AZURE_OPENAI_API_KEY=${AZURE_OPENAI_KEY}" \
+                "USE_MANAGED_IDENTITY=${USE_MANAGED_IDENTITY}" \
+                "APPLICATION_INSIGHTS_CONNECTION_STRING=${APPINSIGHTS_CS}" \
+              --output none
+            
+            echo "✅ Container App created: $CA_NAME"
+            
+            # If using managed identity for Azure OpenAI, grant Cognitive Services User role
+            if [ "$USE_MANAGED_IDENTITY" == "true" ] && [ -n "$AZURE_OPENAI_NAME" ]; then
+              echo "🔐 Configuring managed identity for Azure OpenAI..."
+              CA_IDENTITY=$(az containerapp show --name "$CA_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "identity.principalId" -o tsv)
+              OPENAI_ID=$(az cognitiveservices account show --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "id" -o tsv)
+              
+              az role assignment create \
+                --assignee "$CA_IDENTITY" \
+                --role "Cognitive Services OpenAI User" \
+                --scope "$OPENAI_ID" \
+                --output none 2>/dev/null || true
+              
+              echo "✅ Managed identity configured for Azure OpenAI"
+            fi
+            
+            # Configure ACR pull with managed identity
+            echo "🔐 Configuring managed identity for ACR pull..."
+            CA_IDENTITY=$(az containerapp show --name "$CA_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "identity.principalId" -o tsv)
+            ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "id" -o tsv)
+            
+            # Grant AcrPull role to the Container App's managed identity
+            az role assignment create \
+              --assignee "$CA_IDENTITY" \
+              --role "AcrPull" \
+              --scope "$ACR_ID" \
+              --output none 2>/dev/null || true
+            
+            # Update Container App to use managed identity for registry
+            az containerapp registry set \
+              --name "$CA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --server "$ACR_LOGIN_SERVER" \
+              --identity system \
+              --output none
+            
+            echo "✅ Managed identity configured for ACR pull"
+          fi
+          
+          echo "container_app_name=$CA_NAME" >> $GITHUB_OUTPUT
           
           # Get URL
           CONTAINER_APP_URL=$(az containerapp show \
@@ -307,14 +420,17 @@ jobs:
           echo "container_app_name=$CA_NAME" >> $GITHUB_OUTPUT
           echo "  ✅ Container App: $CA_NAME"
           
-          # Discover Web App
+          # Discover or create Web App
           WA_NAME=$(az webapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
           if [ -z "$WA_NAME" ]; then
-            echo "❌ No Web App found in ${{ env.RESOURCE_GROUP }}"
-            exit 1
+            echo "  ℹ️ No Web App found - will create one"
+            echo "web_app_exists=false" >> $GITHUB_OUTPUT
+            WA_NAME="app-earthcopilot-ui"
+          else
+            echo "web_app_exists=true" >> $GITHUB_OUTPUT
+            echo "  ✅ Web App: $WA_NAME"
           fi
           echo "web_app_name=$WA_NAME" >> $GITHUB_OUTPUT
-          echo "  ✅ Web App: $WA_NAME"
 
       - name: Get Backend URL
         id: get-backend-url
@@ -353,6 +469,47 @@ jobs:
           echo "🎨 Building and deploying frontend..."
           
           WA_NAME="${{ steps.discover.outputs.web_app_name }}"
+          WA_EXISTS="${{ steps.discover.outputs.web_app_exists }}"
+          
+          # Create Web App if it doesn't exist
+          if [ "$WA_EXISTS" != "true" ]; then
+            echo "🆕 Creating new Web App..."
+            
+            # Create App Service Plan
+            ASP_NAME="asp-earthcopilot"
+            az appservice plan create \
+              --name "$ASP_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --location "${{ env.LOCATION }}" \
+              --sku B1 \
+              --is-linux \
+              --output none
+            
+            echo "  ✅ Created App Service Plan: $ASP_NAME"
+            
+            # Create Web App
+            az webapp create \
+              --name "$WA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --plan "$ASP_NAME" \
+              --runtime "NODE:20-lts" \
+              --output none
+            
+            echo "  ✅ Created Web App: $WA_NAME"
+            
+            # Configure Web App
+            az webapp config appsettings set \
+              --name "$WA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --settings \
+                SCM_DO_BUILD_DURING_DEPLOYMENT=false \
+                WEBSITE_NODE_DEFAULT_VERSION=~20 \
+                VITE_API_BASE_URL="${{ steps.get-backend-url.outputs.backend_url }}" \
+                PORT=8080 \
+              --output none
+            
+            echo "  ✅ Configured Web App settings"
+          fi
           
           cd earth-copilot/web-ui
           

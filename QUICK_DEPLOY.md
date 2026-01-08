@@ -6,11 +6,63 @@ Deploy Earth Copilot to your Azure subscription with full automation. This workf
 
 ---
 
+## Deployment Overview
+
+These instructions are **fully generic** and work for any Azure subscription:
+
+| Aspect | Value | Who Provides It |
+|--------|-------|-----------------|
+| Source repo to fork | `microsoft/Earth-Copilot` | OSS |
+| Azure subscription | User's own | User |
+| Service principal | Created by user | User |
+| GitHub secret | Set by user | User |
+| Resource group name | `rg-earthcopilot` | Workflow (changeable) |
+| Location | `eastus2` | Workflow (changeable) |
+| Resource names | Auto-generated unique | Workflow (dynamic) |
+
+---
+
 ## What You'll Need
 
-- **Azure Account**: Active Azure subscription with **Contributor** access (or higher)
+- **Azure Account**: Active Azure subscription
 - **GitHub Account**: To fork this repository
-- **Permissions**: Ability to create service principals in Azure AD (or ask your admin)
+- **Azure CLI**: Required for Azure authentication and resource provider registration ([Install in Step 3](#step-3-install-required-cli-tools))
+- **GitHub CLI**: Optional but recommended for easier secret configuration ([Install in Step 3](#step-3-install-required-cli-tools))
+
+### Required Azure Permissions
+
+You need **two types** of permissions:
+
+| Permission Type | Required Role | Purpose |
+|-----------------|---------------|---------|
+| **Azure AD** | "Users can register applications" = Yes (default) OR **Application Developer** role | Create service principal |
+| **Azure Subscription** | **Contributor** + **User Access Administrator** | Deploy resources + assign roles |
+
+### Verify Your Permissions
+
+Run these commands to check your permissions before starting:
+
+**Check Azure AD permission (can you create apps?):**
+```bash
+# Check if app registration is allowed for all users
+az rest --method GET --url "https://graph.microsoft.com/v1.0/policies/authorizationPolicy" --query "defaultUserRolePermissions.allowedToCreateApps" -o tsv
+# If "true" → You can create service principals ✅
+# If "false" → You need Application Developer role (check with your admin)
+```
+
+**Check Azure subscription roles:**
+```bash
+# Check your roles on the current subscription
+az role assignment list --assignee $(az ad signed-in-user show --query id -o tsv) --query "[].roleDefinitionName" -o tsv
+
+# You need: "Contributor" and "User Access Administrator" (or "Owner" which includes both)
+```
+
+**Or check in Azure Portal:**
+- **Azure AD**: Portal → Microsoft Entra ID → User settings → "Users can register applications"
+- **Subscription**: Portal → Subscriptions → [Your Sub] → Access control (IAM) → View my access
+
+If you're missing permissions, ask your Azure administrator to grant them before proceeding.
 
 ---
 
@@ -20,6 +72,8 @@ Deploy Earth Copilot to your Azure subscription with full automation. This workf
 2. Click the **"Fork"** button at the top right
 3. Choose your GitHub account as the destination
 4. Wait for the fork to complete (~10 seconds)
+
+> **Why fork instead of clone?** Forking creates your own copy of the repository where you can store GitHub Secrets and run GitHub Actions workflows. You cannot add secrets or trigger workflows on the original Microsoft repository.
 
 ✅ **You now have your own copy of Earth Copilot!**
 
@@ -37,7 +91,7 @@ Click the badge above or:
 3. Wait ~2 minutes for the environment to initialize
 4. All CLI tools are pre-installed!
 
-### Option B: Clone to Your Preferred IDE
+### Option B: Clone to Preferred IDE
 
 ```powershell
 # Clone your fork
@@ -53,6 +107,8 @@ Replace `YOUR-USERNAME` with your GitHub username.
 ---
 
 ## Step 3: Install Required CLI Tools
+
+> ⏭️ **Using Codespaces?** Skip this step - all CLI tools are pre-installed.
 
 ### Azure CLI
 
@@ -110,22 +166,58 @@ Follow the prompts to authenticate with your GitHub account.
 
 ## Step 4: Authenticate to Azure
 
-```powershell
-# Authenticate with Azure CLI
-az login
+### Option A: Codespaces (Device Code)
+
+Browser popups don't work in Codespaces, so use device code authentication:
+
+```bash
+# Authenticate with device code
+az login --use-device-code
+
+# Follow the prompt: open the URL and enter the code
 
 # Verify you're using the correct subscription
-az account show --query "{Name:name, SubscriptionId:id}" -o table
+az account show --query "{Name:name, SubscriptionId:id, TenantId:tenantId}" -o table
 
 # If you have multiple subscriptions, set the correct one:
 az account set --subscription "YOUR-SUBSCRIPTION-ID"
+
+# If you have multiple tenants and need a specific one:
+az login --tenant YOUR-TENANT-ID --use-device-code
+```
+
+### Option B: Local IDE (Browser Login)
+
+```powershell
+# Authenticate with Azure CLI (opens browser)
+az login
+
+# Verify you're using the correct subscription
+az account show --query "{Name:name, SubscriptionId:id, TenantId:tenantId}" -o table
+
+# If you have multiple subscriptions, set the correct one:
+az account set --subscription "YOUR-SUBSCRIPTION-ID"
+
+# If you have multiple tenants and need a specific one:
+az login --tenant YOUR-TENANT-ID
 ```
 
 ---
 
 ## Step 5: Open GitHub Copilot in Agent Mode (Recommended)
 
-For an AI-assisted deployment experience, use **GitHub Copilot Agent Mode** in VS Code:
+For an AI-assisted deployment experience, use **GitHub Copilot Agent Mode** in your preferred IDE:
+
+### Option A: GitHub Codespaces
+
+1. In your Codespace, click the **Copilot Chat** icon in the sidebar (or press `Ctrl+Shift+I`)
+2. Click the **Agent Mode** toggle at the top of the chat panel
+3. Ask Copilot to help with deployment:
+   ```
+   Help me deploy Earth Copilot to Azure following QUICK_DEPLOY.md
+   ```
+
+### Option B: VS Code (Local)
 
 1. Open VS Code with your cloned repository
 2. Press `Ctrl+Shift+I` (Windows/Linux) or `Cmd+Shift+I` (macOS) to open Copilot Chat
@@ -137,8 +229,7 @@ For an AI-assisted deployment experience, use **GitHub Copilot Agent Mode** in V
 
 ![VS Code Agent Mode](documentation/images/vsc_agentmode.png)
 
-
-> 💡 **Tip**: Let Copilot guide you through the process.
+> 💡 **Tip**: Let Copilot guide you through the remaining steps.
 
 ---
 
@@ -165,12 +256,41 @@ az provider show --namespace Microsoft.App --query "registrationState"
 
 **This gives GitHub Actions permission to deploy to your Azure subscription.**
 
+> 💡 If you verified your permissions in the "What You'll Need" section above, you're ready to proceed.
+
+### Create the Service Principal
+
+#### Option A: Codespaces (Bash)
+
+```bash
+# Get your subscription ID
+SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+
+# Create service principal with Contributor role
+az ad sp create-for-rbac \
+  --name "sp-earthcopilot-dev" \
+  --role Contributor \
+  --scopes /subscriptions/$SUBSCRIPTION_ID \
+  --sdk-auth
+
+# IMPORTANT: Copy the JSON output above - you'll need it for GitHub secrets!
+
+# Also grant User Access Administrator role (required for role assignments)
+APP_ID=$(az ad sp list --display-name "sp-earthcopilot-dev" --query "[0].appId" -o tsv)
+az role assignment create \
+  --assignee $APP_ID \
+  --role "User Access Administrator" \
+  --scope /subscriptions/$SUBSCRIPTION_ID
+```
+
+#### Option B: Local IDE (PowerShell)
+
 ```powershell
 # Get your subscription ID
 $subscriptionId = az account show --query id -o tsv
 
 # Create service principal with Contributor role
-$sp = az ad sp create-for-rbac `
+az ad sp create-for-rbac `
   --name "sp-earthcopilot-dev" `
   --role Contributor `
   --scopes /subscriptions/$subscriptionId `
@@ -202,6 +322,20 @@ az role assignment create `
 
 Use the GitHub CLI to configure the environment and secret:
 
+**Codespaces (Bash):**
+```bash
+# Navigate to your cloned repo
+cd Earth-Copilot
+
+# Create the dev environment (replace YOUR-USERNAME with your GitHub username)
+gh api repos/YOUR-USERNAME/Earth-Copilot/environments/dev -X PUT
+
+# Set the service principal secret
+gh secret set AZURE_CREDENTIALS --env dev
+# When prompted, paste the entire JSON output from Step 7, then press Ctrl+D
+```
+
+**Local IDE (PowerShell):**
 ```powershell
 # Navigate to your cloned repo
 cd Earth-Copilot
@@ -211,19 +345,19 @@ gh api repos/YOUR-USERNAME/Earth-Copilot/environments/dev -X PUT
 
 # Set the service principal secret
 gh secret set AZURE_CREDENTIALS --env dev
-# When prompted, paste the entire JSON output from Step 7, then press Ctrl+Z (Windows) or Ctrl+D (macOS/Linux)
+# When prompted, paste the entire JSON output from Step 7, then press Ctrl+Z
 ```
 
 ### Option B: GitHub Web UI
 
-**7.1 Create Environment**
+**8.1 Create Environment**
 1. Go to your forked repo on GitHub
 2. Click **Settings** tab → **Environments** (left sidebar)
 3. Click **New environment**
 4. Name: `dev`
 5. Click **Configure environment**
 
-**7.2 Add Service Principal Secret**
+**8.2 Add Service Principal Secret**
 
 Use the JSON output from **Step 7** (the service principal you created).
 
@@ -273,6 +407,40 @@ gh run watch
 
 ![GitHub Actions Auto Deploy](documentation/images/auto_deploy_github_actions.png)
 
+### Optional: Enable Auto-Deploy on Every Commit
+
+By default, the workflow only runs when you manually trigger it. If you want **automatic deployments on every push to main**, edit [.github/workflows/deploy.yml](.github/workflows/deploy.yml):
+
+**Find these lines (near the top):**
+```yaml
+on:
+  # Disabled auto-deploy on push - use manual workflow_dispatch only
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - 'earth-copilot/infra/**'
+  #     - 'earth-copilot/container-app/**'
+  #     - 'earth-copilot/web-ui/**'
+  #     - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+```
+
+**Uncomment the push trigger:**
+```yaml
+on:
+  # Auto-deploy on push to main
+  push:
+    branches: [main]
+    paths:
+      - 'earth-copilot/infra/**'
+      - 'earth-copilot/container-app/**'
+      - 'earth-copilot/web-ui/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+```
+
+Now every push to `main` that changes the listed paths will trigger a deployment automatically.
+
 ---
 
 ## Step 10: Monitor Deployment
@@ -304,9 +472,9 @@ After deployment completes, you can find your application URLs in multiple ways:
 2. Click on the completed **"Deploy Earth Copilot"** workflow run
 3. Scroll down to the **"Deployment Summary"** at the bottom
 4. You'll see:
-   - **Frontend URL**: `https://app-{uniqueString}.azurewebsites.net`
-   - **Backend API**: `https://ca-api-{uniqueString}.eastus2.azurecontainerapps.io`
-   - **API Docs**: `https://ca-api-{uniqueString}.eastus2.azurecontainerapps.io/docs`
+   - **Frontend URL**: `https://app-earthcopilot-ui.azurewebsites.net`
+   - **Backend API**: `https://ca-earthcopilot-api.{region}.azurecontainerapps.io`
+   - **API Docs**: `https://ca-earthcopilot-api.{region}.azurecontainerapps.io/docs`
 
 ### Option 2: Azure Portal
 
