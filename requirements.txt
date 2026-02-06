@@ -20,7 +20,7 @@ pandas>=1.5.0
 
 # --- AI/LLM (Core functionality) ---
 openai==1.107.2
-semantic-kernel==1.36.2  # CRITICAL: Latest stable version with updated API
+semantic-kernel==1.39.3  # CRITICAL: Latest stable version with updated API
 
 # --- STAC/Earth observation (Core functionality) ---
 pystac-client>=0.7.0
