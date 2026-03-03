@@ -1,0 +1,33 @@
+# Docker ignore file for Earth Copilot (build context: earth-copilot/)
+# Applied when ACR builds with --file container-app/Dockerfile.complete ../
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/.venv/
+**/.env
+**/.env.*
+
+# Node.js
+web-ui/node_modules/
+web-ui/dist/
+
+# Dev/IDE files
+.vscode/
+**/.git/
+**/.mypy_cache/
+**/.pytest_cache/
+
+# Deployment artifacts
+**/*.zip
+**/deploy.zip
+
+# Docs (not needed in container)
+../documentation/
+copilot-studio/
+mcp-server/
+
+# OS generated files
+**/.DS_Store
+**/Thumbs.db

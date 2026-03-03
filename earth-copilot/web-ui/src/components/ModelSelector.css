@@ -1,0 +1,125 @@
+/* Model Selector Styles - Matches Get Started button styling */
+.model-selector {
+  position: relative;
+  display: inline-block;
+}
+
+.model-selector-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 120, 212, 0.3);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  color: inherit;
+}
+
+.model-selector-button:hover {
+  background-color: #0078d4;
+  border-color: #0078d4;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+}
+
+.model-selector-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.model-dropdown-arrow {
+  font-size: 8px;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.model-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.model-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 120px;
+  background: white;
+  border: 1px solid rgba(0, 120, 212, 0.3);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  z-index: 1200;
+  overflow: hidden;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.model-list {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+}
+
+.model-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.model-option:hover {
+  background: rgba(0, 120, 212, 0.1);
+}
+
+.model-option.selected {
+  background: rgba(0, 120, 212, 0.15);
+}
+
+.model-option-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.check-mark {
+  color: #0078d4;
+  font-weight: bold;
+}
+
+.model-option.unavailable {
+  cursor: not-allowed;
+}
+
+.model-option.unavailable:hover {
+  background: transparent;
+}
+
+.model-option.unavailable .model-option-name {
+  color: #999;
+}
+
+.model-status-indicator {
+  flex-shrink: 0;
+}
+
+.model-availability-dot {
+  flex-shrink: 0;
+}

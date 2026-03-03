@@ -1,0 +1,1424 @@
+name: Deploy Earth Copilot
+
+on:
+  push:
+    branches: [main, agent_service]
+    paths:
+      - 'earth-copilot/infra/**'
+      - 'earth-copilot/container-app/**'
+      - 'earth-copilot/web-ui/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+    inputs:
+      force_all:
+        description: 'Force deploy all components'
+        required: false
+        default: false
+        type: boolean
+      web_app_name:
+        description: 'Web App name (must be globally unique - used in domain name)'
+        required: false
+        default: ''
+        type: string
+      disable_auth:
+        description: 'Disable Entra ID authentication (app will be publicly accessible — dev/test only)'
+        required: false
+        default: false
+        type: boolean
+      disable_private_endpoints:
+        description: 'Disable private endpoints (uses public access with cheaper SKUs — dev/test only)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+# Prevent concurrent deployments from racing and causing DeploymentActive conflicts
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+# All environment-specific values come from GitHub Environment variables (vars.)
+# with sensible defaults so new users can deploy without any configuration.
+# To customize, set these in your GitHub Environment (Settings -> Environments -> dev):
+#   vars.RESOURCE_GROUP  — Azure resource group name (default: rg-earthcopilot)
+#   vars.LOCATION        — Azure region (default: eastus2)
+#   vars.PROJECT_NAME    — Project prefix for naming resources (default: earthcopilot)
+env:
+  RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP || 'rg-earthcopilot' }}
+  LOCATION: ${{ vars.LOCATION || 'eastus2' }}
+  PROJECT_NAME: ${{ vars.PROJECT_NAME || 'earthcopilot' }}
+
+jobs:
+  # Detect which components changed
+  detect-changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      infra: ${{ steps.filter.outputs.infra }}
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect file changes
+        id: filter
+        run: |
+          # For manual trigger with force_all, deploy everything
+          if [ "${{ github.event.inputs.force_all }}" == "true" ]; then
+            echo "infra=true" >> $GITHUB_OUTPUT
+            echo "backend=true" >> $GITHUB_OUTPUT
+            echo "frontend=true" >> $GITHUB_OUTPUT
+            echo " Force deploy all components"
+            exit 0
+          fi
+          
+          # Get changed files
+          if [ "${{ github.event_name }}" == "push" ]; then
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+          else
+            # For manual trigger without force_all, deploy everything
+            echo "infra=true" >> $GITHUB_OUTPUT
+            echo "backend=true" >> $GITHUB_OUTPUT
+            echo "frontend=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          # Check each component
+          INFRA_CHANGED=false
+          BACKEND_CHANGED=false
+          FRONTEND_CHANGED=false
+          
+          if echo "$CHANGED_FILES" | grep -q "^earth-copilot/infra/"; then
+            INFRA_CHANGED=true
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "^earth-copilot/container-app/"; then
+            BACKEND_CHANGED=true
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "^earth-copilot/web-ui/"; then
+            FRONTEND_CHANGED=true
+          fi
+          
+          # If workflow file changed, deploy all
+          if echo "$CHANGED_FILES" | grep -q "^.github/workflows/deploy.yml"; then
+            INFRA_CHANGED=true
+            BACKEND_CHANGED=true
+            FRONTEND_CHANGED=true
+          fi
+          
+          echo "infra=$INFRA_CHANGED" >> $GITHUB_OUTPUT
+          echo "backend=$BACKEND_CHANGED" >> $GITHUB_OUTPUT
+          echo "frontend=$FRONTEND_CHANGED" >> $GITHUB_OUTPUT
+          
+          echo ""
+          echo " Components to deploy:"
+          echo "  Infrastructure: $INFRA_CHANGED"
+          echo "  Backend: $BACKEND_CHANGED"
+          echo "  Frontend: $FRONTEND_CHANGED"
+
+  # Deploy Infrastructure (only if infra files changed)
+  deploy-infrastructure:
+    name: Deploy Infrastructure
+    needs: detect-changes
+    if: needs.detect-changes.outputs.infra == 'true'
+    runs-on: ubuntu-latest
+    environment: dev
+    outputs:
+      container_registry_name: ${{ steps.discover.outputs.container_registry_name }}
+      container_app_name: ${{ steps.discover.outputs.container_app_name }}
+      web_app_name: ${{ steps.discover.outputs.web_app_name }}
+      container_app_url: ${{ steps.discover.outputs.container_app_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Purge Soft-Deleted Resources
+        run: |
+          echo "Checking for soft-deleted Key Vaults and AI Services accounts..."
+          
+          # Purge any soft-deleted Key Vault whose name starts with our naming pattern
+          DELETED_KV=$(az keyvault list-deleted --query "[?starts_with(name, 'kv-')].name" -o tsv 2>/dev/null || true)
+          if [ -n "$DELETED_KV" ]; then
+            for kv in $DELETED_KV; do
+              echo "  Purging soft-deleted Key Vault: $kv"
+              az keyvault purge --name "$kv" --location "${{ env.LOCATION }}" --no-wait 2>/dev/null || true
+            done
+          else
+            echo "  No soft-deleted Key Vaults found"
+          fi
+          
+          # Purge any soft-deleted Cognitive Services account whose name starts with our naming pattern
+          DELETED_COG=$(az cognitiveservices account list-deleted --query "[?starts_with(name, 'cog-foundry-')].{name:name, rg:resourceGroup, loc:location}" -o json 2>/dev/null || echo "[]")
+          if [ "$DELETED_COG" != "[]" ]; then
+            echo "$DELETED_COG" | jq -r '.[] | "\(.name) \(.rg) \(.loc)"' | while read -r cog_name cog_rg cog_loc; do
+              echo "  Purging soft-deleted AI Services: $cog_name"
+              az cognitiveservices account purge --location "$cog_loc" --resource-group "$cog_rg" --name "$cog_name" 2>/dev/null || true
+            done
+          else
+            echo "  No soft-deleted AI Services accounts found"
+          fi
+          
+          echo "Soft-delete purge check complete"
+
+      - name: Deploy Infrastructure with Bicep
+        run: |
+          cd earth-copilot
+          
+          DEPLOYMENT_NAME="${{ env.PROJECT_NAME }}-$(date +%Y%m%d-%H%M%S)"
+          # Private endpoints are ON by default; only disabled if user explicitly checks disable_private_endpoints
+          if [ "${{ github.event.inputs.disable_private_endpoints }}" == "true" ]; then
+            ENABLE_PE="false"
+          else
+            ENABLE_PE="true"
+          fi
+          
+          echo "Deploying Infrastructure..."
+          echo "  Private Endpoints: $ENABLE_PE"
+          
+          az deployment sub create \
+            --location "${{ env.LOCATION }}" \
+            --template-file infra/main.bicep \
+            --parameters environmentName="${{ env.PROJECT_NAME }}" \
+            --parameters location="${{ env.LOCATION }}" \
+            --parameters deployAIFoundry=true \
+            --parameters containerImage="" \
+            --parameters enablePrivateEndpoints=$ENABLE_PE \
+            --name "$DEPLOYMENT_NAME" \
+            --output none
+          
+          echo "Infrastructure deployed successfully"
+
+      - name: Discover Resource Names
+        id: discover
+        run: |
+          echo "Discovering deployed resource names..."
+          
+          # Discover Container Registry
+          ACR_NAME=$(az acr list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          echo "container_registry_name=$ACR_NAME" >> $GITHUB_OUTPUT
+          echo "  Container Registry: $ACR_NAME"
+          
+          # Discover Container App
+          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          echo "container_app_name=$CA_NAME" >> $GITHUB_OUTPUT
+          echo "  Container App: $CA_NAME"
+          
+          # Discover Web App
+          WA_NAME=$(az webapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          echo "web_app_name=$WA_NAME" >> $GITHUB_OUTPUT
+          echo "  Web App: $WA_NAME"
+          
+          # Get Container App URL
+          if [ -n "$CA_NAME" ]; then
+            CA_URL=$(az containerapp show --name "$CA_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "properties.configuration.ingress.fqdn" -o tsv)
+            echo "container_app_url=https://$CA_URL" >> $GITHUB_OUTPUT
+            echo "  Container App URL: https://$CA_URL"
+          fi
+
+  # Deploy Backend (if backend files changed OR infra deployed)
+  deploy-backend:
+    name: Deploy Backend
+    needs: [detect-changes, deploy-infrastructure]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.infra == 'true') &&
+      (needs.deploy-infrastructure.result == 'success' || needs.deploy-infrastructure.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: dev
+    outputs:
+      container_app_url: ${{ steps.deploy.outputs.container_app_url }}
+      container_app_name: ${{ steps.discover.outputs.container_app_name }}
+      container_registry_name: ${{ steps.discover.outputs.container_registry_name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Discover Resource Names
+        id: discover
+        run: |
+          echo "Discovering resource names..."
+          
+          # Discover Container Registry
+          ACR_NAME=$(az acr list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$ACR_NAME" ]; then
+            echo "ERROR: No Container Registry found in ${{ env.RESOURCE_GROUP }}"
+            echo "   Run infrastructure deployment first!"
+            exit 1
+          fi
+          echo "container_registry_name=$ACR_NAME" >> $GITHUB_OUTPUT
+          echo "  Container Registry: $ACR_NAME"
+          
+          # Discover Container App Environment
+          CAE_NAME=$(az containerapp env list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$CAE_NAME" ]; then
+            echo "ERROR: No Container App Environment found in ${{ env.RESOURCE_GROUP }}"
+            echo "   Run infrastructure deployment first!"
+            exit 1
+          fi
+          echo "container_app_env_name=$CAE_NAME" >> $GITHUB_OUTPUT
+          echo "  Container App Environment: $CAE_NAME"
+          
+          # Discover Container App (may not exist yet on first deploy)
+          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$CA_NAME" ]; then
+            echo "  INFO: No Container App found - will create one"
+            echo "container_app_exists=false" >> $GITHUB_OUTPUT
+          else
+            echo "container_app_name=$CA_NAME" >> $GITHUB_OUTPUT
+            echo "container_app_exists=true" >> $GITHUB_OUTPUT
+            echo "  Container App: $CA_NAME"
+          fi
+
+      - name: Build and Deploy Backend
+        id: deploy
+        run: |
+          echo " Building and deploying backend..."
+          
+          ACR_NAME="${{ steps.discover.outputs.container_registry_name }}"
+          CAE_NAME="${{ steps.discover.outputs.container_app_env_name }}"
+          CA_EXISTS="${{ steps.discover.outputs.container_app_exists }}"
+          CA_NAME="${{ steps.discover.outputs.container_app_name }}"
+          
+          cd earth-copilot/container-app
+          
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+          IMAGE_TAG="$TIMESTAMP"
+          
+          # ── Build image ────────────────────────────────────────────────
+          # ACR has defaultAction: Deny for production security.
+          # Temporarily open the firewall for the build, then re-lock.
+          # Container App pulls via private endpoint (unaffected).
+          echo "Temporarily opening ACR firewall for build..."
+          az acr update --name "$ACR_NAME" --default-action Allow --only-show-errors
+          
+          BUILD_TIMEOUT=1800
+          echo "Building image (timeout: ${BUILD_TIMEOUT}s)..."
+          
+          build_image() {
+            az acr build \
+              --registry "$ACR_NAME" \
+              --image "${{ env.PROJECT_NAME }}-api:$IMAGE_TAG" \
+              --image "${{ env.PROJECT_NAME }}-api:latest" \
+              --file Dockerfile.complete \
+              --timeout "$BUILD_TIMEOUT" \
+              ../
+          }
+          
+          BUILD_OK=true
+          if ! build_image; then
+            echo "::warning::First build attempt failed. Retrying in 60s..."
+            sleep 60
+            if ! build_image; then
+              BUILD_OK=false
+            fi
+          fi
+          
+          # Always re-lock the firewall, even if build failed
+          echo "Re-locking ACR firewall..."
+          az acr update --name "$ACR_NAME" --default-action Deny --only-show-errors
+          
+          if [ "$BUILD_OK" != "true" ]; then
+            echo "::error::Build failed after 2 attempts"
+            exit 1
+          fi
+          
+          echo "Image built and pushed: ${ACR_NAME}.azurecr.io/${{ env.PROJECT_NAME }}-api:$IMAGE_TAG"
+          
+          # Get ACR login server
+          ACR_LOGIN_SERVER=$(az acr show \
+            --name "$ACR_NAME" \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --query "loginServer" -o tsv)
+          
+          if [ "$CA_EXISTS" == "true" ]; then
+            # Update existing Container App
+            echo "Updating existing Container App..."
+            
+            # Fetch current credentials to ensure env vars are up-to-date
+            echo "Fetching service credentials..."
+            
+            # Get AI Foundry/Azure OpenAI credentials (AIServices is the new kind for AI Foundry)
+            AZURE_OPENAI_NAME=$(az cognitiveservices account list --resource-group ${{ env.RESOURCE_GROUP }} --query "[?kind=='AIServices' || kind=='OpenAI'].name | [0]" -o tsv)
+            AZURE_OPENAI_KEY=""
+            AZURE_OPENAI_ENDPOINT=""
+            AZURE_OPENAI_DEPLOYMENT_NAME="gpt-5"
+            AZURE_OPENAI_FAST_DEPLOYMENT="gpt-4o-mini"
+            AZURE_OPENAI_AVAILABLE_MODELS=""
+            USE_MANAGED_IDENTITY="true"
+            if [ -n "$AZURE_OPENAI_NAME" ]; then
+              AZURE_OPENAI_ENDPOINT=$(az cognitiveservices account show --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "properties.endpoint" -o tsv)
+              LOCAL_AUTH_DISABLED=$(az cognitiveservices account show --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "properties.disableLocalAuth" -o tsv)
+              if [ "$LOCAL_AUTH_DISABLED" == "true" ]; then
+                USE_MANAGED_IDENTITY="true"
+              else
+                AZURE_OPENAI_KEY=$(az cognitiveservices account keys list --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "key1" -o tsv 2>/dev/null || echo "")
+              fi
+              # Get available model deployments
+              AZURE_OPENAI_AVAILABLE_MODELS=$(az cognitiveservices account deployment list --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "[].name" -o tsv 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+              echo "  Azure OpenAI: $AZURE_OPENAI_NAME"
+              echo "  Available Models: $AZURE_OPENAI_AVAILABLE_MODELS"
+              
+              # Auto-select best primary model from what's deployed (prefer gpt-5 > gpt-4o > gpt-4o-mini)
+              for MODEL in gpt-5 gpt-4o gpt-4o-mini; do
+                if echo ",$AZURE_OPENAI_AVAILABLE_MODELS," | grep -q ",$MODEL,"; then
+                  AZURE_OPENAI_DEPLOYMENT_NAME="$MODEL"
+                  break
+                fi
+              done
+              echo "  Selected primary model: $AZURE_OPENAI_DEPLOYMENT_NAME"
+              
+              # Auto-select fast model (prefer gpt-4o-mini > gpt-4o)
+              for FAST_MODEL in gpt-4o-mini gpt-4o; do
+                if echo ",$AZURE_OPENAI_AVAILABLE_MODELS," | grep -q ",$FAST_MODEL,"; then
+                  AZURE_OPENAI_FAST_DEPLOYMENT="$FAST_MODEL"
+                  break
+                fi
+              done
+              echo "  Selected fast model: $AZURE_OPENAI_FAST_DEPLOYMENT"
+            fi
+            
+            # Get Azure Maps subscription key
+            AZURE_MAPS_KEY=""
+            MAPS_ACCOUNT=$(az maps account list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+            if [ -n "$MAPS_ACCOUNT" ]; then
+              AZURE_MAPS_KEY=$(az maps account keys list --name "$MAPS_ACCOUNT" --resource-group ${{ env.RESOURCE_GROUP }} --query "primaryKey" -o tsv)
+              echo "  Azure Maps: $MAPS_ACCOUNT"
+            fi
+            
+            # Update container with image AND refreshed environment variables
+            az containerapp update \
+              --name "$CA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --image "${ACR_LOGIN_SERVER}/${{ env.PROJECT_NAME }}-api:${IMAGE_TAG}" \
+              --set-env-vars \
+                "PORT=8080" \
+                "STAC_API_URL=https://planetarycomputer.microsoft.com/api/stac/v1" \
+                "CORS_ORIGINS=*" \
+                "AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}" \
+                "AZURE_OPENAI_API_KEY=${AZURE_OPENAI_KEY}" \
+                "AZURE_OPENAI_DEPLOYMENT_NAME=${AZURE_OPENAI_DEPLOYMENT_NAME}" \
+                "AZURE_OPENAI_FAST_DEPLOYMENT=${AZURE_OPENAI_FAST_DEPLOYMENT}" \
+                "AZURE_OPENAI_AVAILABLE_MODELS=${AZURE_OPENAI_AVAILABLE_MODELS}" \
+                "USE_MANAGED_IDENTITY=${USE_MANAGED_IDENTITY}" \
+                "AZURE_MAPS_SUBSCRIPTION_KEY=${AZURE_MAPS_KEY}" \
+              --output none
+            
+            # Ensure ingress is configured with correct port
+            echo "Ensuring ingress port is correct (8080)..."
+            az containerapp ingress update \
+              --name "$CA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --target-port 8080 \
+              --output none
+              
+            echo "Container App updated with refreshed credentials"
+          else
+            # Create new Container App
+            echo "Creating new Container App..."
+            CA_NAME="ca-${{ env.PROJECT_NAME }}-api"
+            
+            # Get AI Foundry endpoint (AIServices is the new kind for AI Foundry)
+            AZURE_OPENAI_NAME=$(az cognitiveservices account list --resource-group ${{ env.RESOURCE_GROUP }} --query "[?kind=='AIServices' || kind=='OpenAI'].name | [0]" -o tsv)
+            AZURE_OPENAI_KEY=""
+            AZURE_OPENAI_DEPLOYMENT_NAME="gpt-5"
+            AZURE_OPENAI_FAST_DEPLOYMENT="gpt-4o-mini"
+            AZURE_OPENAI_AVAILABLE_MODELS=""
+            USE_MANAGED_IDENTITY="true"
+            if [ -n "$AZURE_OPENAI_NAME" ]; then
+              AZURE_OPENAI_ENDPOINT=$(az cognitiveservices account show --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "properties.endpoint" -o tsv)
+              # Check if local auth is disabled
+              LOCAL_AUTH_DISABLED=$(az cognitiveservices account show --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "properties.disableLocalAuth" -o tsv)
+              if [ "$LOCAL_AUTH_DISABLED" == "true" ]; then
+                echo "  INFO: Azure OpenAI has local auth disabled - will use managed identity"
+                USE_MANAGED_IDENTITY="true"
+              else
+                AZURE_OPENAI_KEY=$(az cognitiveservices account keys list --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "key1" -o tsv 2>/dev/null || echo "")
+              fi
+              # Get available model deployments
+              AZURE_OPENAI_AVAILABLE_MODELS=$(az cognitiveservices account deployment list --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "[].name" -o tsv 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+              echo "  Found Azure OpenAI: $AZURE_OPENAI_NAME"
+              echo "  Available Models: $AZURE_OPENAI_AVAILABLE_MODELS"
+              
+              # Auto-select best primary model from what's deployed (prefer gpt-5 > gpt-4o > gpt-4o-mini)
+              for MODEL in gpt-5 gpt-4o gpt-4o-mini; do
+                if echo ",$AZURE_OPENAI_AVAILABLE_MODELS," | grep -q ",$MODEL,"; then
+                  AZURE_OPENAI_DEPLOYMENT_NAME="$MODEL"
+                  break
+                fi
+              done
+              echo "  Selected primary model: $AZURE_OPENAI_DEPLOYMENT_NAME"
+              
+              # Auto-select fast model (prefer gpt-4o-mini > gpt-4o)
+              for FAST_MODEL in gpt-4o-mini gpt-4o; do
+                if echo ",$AZURE_OPENAI_AVAILABLE_MODELS," | grep -q ",$FAST_MODEL,"; then
+                  AZURE_OPENAI_FAST_DEPLOYMENT="$FAST_MODEL"
+                  break
+                fi
+              done
+              echo "  Selected fast model: $AZURE_OPENAI_FAST_DEPLOYMENT"
+            else
+              AZURE_OPENAI_ENDPOINT=""
+              echo "  WARNING: No Azure OpenAI found - app will use fallback settings"
+            fi
+            
+            # Get Azure Maps subscription key
+            AZURE_MAPS_KEY=""
+            MAPS_ACCOUNT=$(az maps account list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+            if [ -n "$MAPS_ACCOUNT" ]; then
+              AZURE_MAPS_KEY=$(az maps account keys list --name "$MAPS_ACCOUNT" --resource-group ${{ env.RESOURCE_GROUP }} --query "primaryKey" -o tsv)
+              echo "  Found Azure Maps: $MAPS_ACCOUNT"
+            else
+              echo "  WARNING: No Azure Maps account found"
+            fi
+            
+            # STEP 1: Create Container App with a public placeholder image (no auth required)
+            # This avoids the chicken-and-egg problem where we need managed identity to pull
+            # from ACR, but managed identity doesn't exist until the app is created
+            echo "Creating Container App with placeholder image..."
+            az containerapp create \
+              --name "$CA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --environment "$CAE_NAME" \
+              --image "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest" \
+              --target-port 8080 \
+              --ingress external \
+              --cpu 1.0 \
+              --memory 2.0Gi \
+              --min-replicas 1 \
+              --max-replicas 3 \
+              --system-assigned \
+              --env-vars \
+                "PORT=8080" \
+                "STAC_API_URL=https://planetarycomputer.microsoft.com/api/stac/v1" \
+                "CORS_ORIGINS=*" \
+                "AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}" \
+                "AZURE_OPENAI_API_KEY=${AZURE_OPENAI_KEY}" \
+                "AZURE_OPENAI_DEPLOYMENT_NAME=${AZURE_OPENAI_DEPLOYMENT_NAME}" \
+                "AZURE_OPENAI_FAST_DEPLOYMENT=${AZURE_OPENAI_FAST_DEPLOYMENT}" \
+                "AZURE_OPENAI_AVAILABLE_MODELS=${AZURE_OPENAI_AVAILABLE_MODELS}" \
+                "USE_MANAGED_IDENTITY=${USE_MANAGED_IDENTITY}" \
+                "AZURE_MAPS_SUBSCRIPTION_KEY=${AZURE_MAPS_KEY}" \
+              --output none
+            
+            echo "Container App created with placeholder image: $CA_NAME"
+            
+            # Ensure ingress target port matches the container app's port
+            echo "Setting ingress target port to 8080..."
+            az containerapp ingress update \
+              --name "$CA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --target-port 8080 \
+              --output none
+            
+            echo "Ingress target port set to 8080"
+            
+            # STEP 2: Get the managed identity principal ID (now that app exists)
+            CA_IDENTITY=$(az containerapp show --name "$CA_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "identity.principalId" -o tsv)
+            echo "Managed Identity Principal ID: $CA_IDENTITY"
+            
+            # STEP 3: Configure Azure OpenAI access if using managed identity
+            if [ "$USE_MANAGED_IDENTITY" == "true" ] && [ -n "$AZURE_OPENAI_NAME" ]; then
+              echo "Configuring managed identity for Azure OpenAI..."
+              OPENAI_ID=$(az cognitiveservices account show --name "$AZURE_OPENAI_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "id" -o tsv)
+              
+              az role assignment create \
+                --assignee "$CA_IDENTITY" \
+                --role "Cognitive Services OpenAI User" \
+                --scope "$OPENAI_ID" \
+                --output none 2>/dev/null || true
+              
+              echo "Managed identity configured for Azure OpenAI"
+            fi
+            
+            # STEP 4: Grant AcrPull role to the Container App's managed identity
+            echo "Configuring managed identity for ACR pull..."
+            ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "id" -o tsv)
+            
+            az role assignment create \
+              --assignee "$CA_IDENTITY" \
+              --role "AcrPull" \
+              --scope "$ACR_ID" \
+              --output none 2>/dev/null || true
+            
+            echo "AcrPull role assigned to managed identity"
+            
+            # STEP 5: Wait for role assignment to propagate (Azure RBAC can take up to 5 minutes)
+            echo "Waiting 90 seconds for role assignment propagation..."
+            sleep 90
+            
+            # STEP 6: Configure the registry to use managed identity
+            echo "Configuring Container App to use managed identity for ACR..."
+            az containerapp registry set \
+              --name "$CA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --server "$ACR_LOGIN_SERVER" \
+              --identity system \
+              --output none
+            
+            echo "Registry configured with managed identity"
+            
+            # STEP 7: Verify registry configuration before pulling
+            echo "Verifying registry authentication configuration..."
+            REGISTRY_CONFIG=$(az containerapp show \
+              --name "$CA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --query "properties.configuration.registries[?server=='${ACR_LOGIN_SERVER}'].identity" \
+              -o tsv)
+            
+            if [ "$REGISTRY_CONFIG" != "system" ]; then
+              echo "WARNING: Registry identity not set to 'system', retrying..."
+              sleep 30
+              az containerapp registry set \
+                --name "$CA_NAME" \
+                --resource-group "${{ env.RESOURCE_GROUP }}" \
+                --server "$ACR_LOGIN_SERVER" \
+                --identity system \
+                --output none
+            fi
+            echo "Registry authentication verified: using system-assigned managed identity"
+            
+            # STEP 8: Verify managed identity has AcrPull role
+            echo "Verifying AcrPull role assignment..."
+            ROLE_EXISTS=$(az role assignment list \
+              --assignee "$CA_IDENTITY" \
+              --role "AcrPull" \
+              --scope "$ACR_ID" \
+              --query "[0].id" -o tsv 2>/dev/null || echo "")
+            
+            if [ -z "$ROLE_EXISTS" ]; then
+              echo "WARNING: AcrPull role not found, waiting additional 60 seconds..."
+              sleep 60
+              # Retry role assignment
+              az role assignment create \
+                --assignee "$CA_IDENTITY" \
+                --role "AcrPull" \
+                --scope "$ACR_ID" \
+                --output none 2>/dev/null || true
+            fi
+            echo "AcrPull role verified for managed identity"
+            
+            # STEP 9: Now update the Container App with the actual image from ACR
+            echo "Updating Container App with actual image from ACR..."
+            az containerapp update \
+              --name "$CA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --image "${ACR_LOGIN_SERVER}/${{ env.PROJECT_NAME }}-api:${IMAGE_TAG}" \
+              --output none
+            
+            echo "Container App updated with image: ${ACR_LOGIN_SERVER}/${{ env.PROJECT_NAME }}-api:${IMAGE_TAG}"
+          fi
+          
+          echo "container_app_name=$CA_NAME" >> $GITHUB_OUTPUT
+          
+          # Get URL
+          CONTAINER_APP_URL=$(az containerapp show \
+            --name "$CA_NAME" \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          
+          echo "container_app_url=https://$CONTAINER_APP_URL" >> $GITHUB_OUTPUT
+          echo "Backend deployed to: https://$CONTAINER_APP_URL"
+
+  # Deploy Frontend (if frontend files changed, runs after backend)
+  deploy-frontend:
+    name: Deploy Frontend
+    needs: [detect-changes, deploy-infrastructure, deploy-backend]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.infra == 'true') &&
+      (needs.deploy-infrastructure.result == 'success' || needs.deploy-infrastructure.result == 'skipped') &&
+      (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: dev
+    outputs:
+      web_app_name: ${{ steps.discover.outputs.web_app_name }}
+      web_app_url: ${{ steps.deploy.outputs.web_app_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: earth-copilot/web-ui/package-lock.json
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Discover Resource Names
+        id: discover
+        run: |
+          echo "Discovering resource names..."
+          
+          # Discover Container App
+          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$CA_NAME" ]; then
+            echo "ERROR: No Container App found in ${{ env.RESOURCE_GROUP }}"
+            exit 1
+          fi
+          echo "container_app_name=$CA_NAME" >> $GITHUB_OUTPUT
+          echo "  Container App: $CA_NAME"
+          
+          # Discover or create Web App
+          WA_NAME=$(az webapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$WA_NAME" ]; then
+            echo "  INFO: No Web App found - will create one"
+            echo "web_app_exists=false" >> $GITHUB_OUTPUT
+            # Use user-provided name or generate a unique default
+            WA_NAME="${{ github.event.inputs.web_app_name }}"
+            if [ -z "$WA_NAME" ]; then
+              # Generate unique name using resource group hash to avoid global conflicts
+              UNIQUE_SUFFIX=$(echo -n "${{ env.RESOURCE_GROUP }}-${{ github.repository }}" | md5sum | cut -c1-8)
+              WA_NAME="app-${{ env.PROJECT_NAME }}-${UNIQUE_SUFFIX}"
+              echo "  Generated unique Web App name: $WA_NAME"
+            fi
+          else
+            echo "web_app_exists=true" >> $GITHUB_OUTPUT
+            echo "  Web App: $WA_NAME"
+          fi
+          echo "web_app_name=$WA_NAME" >> $GITHUB_OUTPUT
+
+      - name: Get Backend URL
+        id: get-backend-url
+        run: |
+          CA_NAME="${{ steps.discover.outputs.container_app_name }}"
+          CONTAINER_APP_URL=$(az containerapp show \
+            --name "$CA_NAME" \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "backend_url=https://$CONTAINER_APP_URL" >> $GITHUB_OUTPUT
+          echo "  Backend URL: https://$CONTAINER_APP_URL"
+
+      - name: Get Azure Maps Key
+        id: get-maps-key
+        run: |
+          # Find Azure Maps account in resource group
+          MAPS_ACCOUNT=$(az maps account list \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "[0].name" -o tsv)
+          
+          if [ -n "$MAPS_ACCOUNT" ]; then
+            MAPS_KEY=$(az maps account keys list \
+              --name "$MAPS_ACCOUNT" \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --query "primaryKey" -o tsv)
+            echo "maps_key=$MAPS_KEY" >> $GITHUB_OUTPUT
+            echo "Azure Maps key retrieved from: $MAPS_ACCOUNT"
+          else
+            echo "WARNING: No Azure Maps account found in ${{ env.RESOURCE_GROUP }}"
+            echo "maps_key=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and Deploy Frontend
+        id: deploy
+        run: |
+          echo "Building and deploying frontend..."
+          
+          WA_NAME="${{ steps.discover.outputs.web_app_name }}"
+          WA_EXISTS="${{ steps.discover.outputs.web_app_exists }}"
+          # Private endpoints are ON by default; only disabled if user explicitly checks disable_private_endpoints
+          if [ "${{ github.event.inputs.disable_private_endpoints }}" == "true" ]; then
+            ENABLE_PE="false"
+          else
+            ENABLE_PE="true"
+          fi
+          
+          # Determine SKU: S1 required for VNet integration, F1 otherwise
+          if [ "$ENABLE_PE" == "true" ]; then
+            SKU="S1"
+            echo "  Private endpoints enabled — using S1 SKU for VNet integration"
+          else
+            SKU="F1"
+          fi
+          
+          # Create Web App if it doesn't exist
+          if [ "$WA_EXISTS" != "true" ]; then
+            echo "Creating new Web App..."
+            
+            # Create App Service Plan
+            ASP_NAME="asp-${{ env.PROJECT_NAME }}"
+            az appservice plan create \
+              --name "$ASP_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --location "${{ env.LOCATION }}" \
+              --sku "$SKU" \
+              --is-linux \
+              --output none
+            
+            echo "  Created App Service Plan: $ASP_NAME (SKU: $SKU)"
+            
+            # Create Web App
+            az webapp create \
+              --name "$WA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --plan "$ASP_NAME" \
+              --runtime "NODE:20-lts" \
+              --output none
+            
+            echo "  Created Web App: $WA_NAME"
+            
+            # Configure Web App
+            az webapp config appsettings set \
+              --name "$WA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --settings \
+                SCM_DO_BUILD_DURING_DEPLOYMENT=false \
+                WEBSITE_NODE_DEFAULT_VERSION=~20 \
+                VITE_API_BASE_URL="${{ steps.get-backend-url.outputs.backend_url }}" \
+                PORT=8080 \
+              --output none
+            
+            echo "  Configured Web App settings"
+          else
+            # If PE enabled and app already exists, upgrade to S1 if needed
+            if [ "$ENABLE_PE" == "true" ]; then
+              ASP_NAME=$(az webapp show --name "$WA_NAME" --resource-group "${{ env.RESOURCE_GROUP }}" \
+                --query "appServicePlanId" -o tsv | xargs -I{} basename {})
+              CURRENT_SKU=$(az appservice plan show --name "$ASP_NAME" --resource-group "${{ env.RESOURCE_GROUP }}" \
+                --query "sku.name" -o tsv)
+              if [ "$CURRENT_SKU" == "F1" ] || [ "$CURRENT_SKU" == "B1" ]; then
+                echo "  Upgrading App Service Plan to S1 for VNet integration..."
+                az appservice plan update \
+                  --name "$ASP_NAME" \
+                  --resource-group "${{ env.RESOURCE_GROUP }}" \
+                  --sku S1 \
+                  --output none
+              fi
+            fi
+          fi
+          
+          # Add VNet integration if private endpoints are enabled
+          if [ "$ENABLE_PE" == "true" ]; then
+            VNET_NAME=$(az network vnet list --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --query "[0].name" -o tsv)
+            if [ -n "$VNET_NAME" ]; then
+              echo "  Adding VNet integration (subnet: snet-app-service)..."
+              az webapp vnet-integration add \
+                --name "$WA_NAME" \
+                --resource-group "${{ env.RESOURCE_GROUP }}" \
+                --vnet "$VNET_NAME" \
+                --subnet "snet-app-service" \
+                --output none 2>/dev/null || echo "  VNet integration already configured"
+            fi
+          fi
+          
+          cd earth-copilot/web-ui
+          
+          # Install and build with environment variables
+          npm ci
+          VITE_API_BASE_URL="${{ steps.get-backend-url.outputs.backend_url }}" \
+          VITE_AZURE_MAPS_SUBSCRIPTION_KEY="${{ steps.get-maps-key.outputs.maps_key }}" \
+          npm run build
+          
+          # Create server for App Service
+          cat > dist/server.js << 'EOF'
+          const express = require('express');
+          const path = require('path');
+          const app = express();
+          const port = process.env.PORT || 8080;
+          app.use(express.static(__dirname));
+          app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+          app.listen(port, () => console.log('Server running on port ' + port));
+          EOF
+          
+          cat > dist/package.json << 'EOF'
+          {"name":"earth-copilot-ui","version":"1.0.0","main":"server.js","scripts":{"start":"node server.js"},"dependencies":{"express":"^4.18.0"}}
+          EOF
+          
+          cd dist
+          npm install --production
+          zip -r ../deploy.zip .
+          cd ..
+          
+          # Deploy to App Service
+          az webapp deploy \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --name "$WA_NAME" \
+            --src-path deploy.zip \
+            --type zip
+          
+          WEB_URL=$(az webapp show \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --name "$WA_NAME" \
+            --query "defaultHostName" -o tsv)
+          
+          echo "web_app_url=https://$WEB_URL" >> $GITHUB_OUTPUT
+          echo "Frontend deployed to: https://$WEB_URL"
+
+  # Enable Azure AI Agent Service (required for GEOINT agents)
+  # -----------------------------------------------------------------------------
+  # Enables Agent Service capability hosts on the AI Foundry account so that
+  # GEOINT agents (Vision, Terrain, Mobility, Building Damage, Comparison,
+  # Extreme Weather) can use multi-turn tool orchestration.
+  #
+  # The Router Agent works immediately (Semantic Kernel + Azure OpenAI),
+  # but all specialized GEOINT agents require Agent Service to function.
+  #
+  # This job:
+  #   1. Enables allowProjectManagement on the CogSvc account
+  #   2. Creates a CogSvc project sub-resource
+  #   3. Creates account-level and project-level capability hosts (Agents)
+  #   4. Assigns required roles to the Container App's managed identity
+  #   5. Updates AZURE_AI_PROJECT_ENDPOINT env var on the Container App
+  # -----------------------------------------------------------------------------
+  enable-agent-service:
+    name: Enable Agent Service
+    needs: [deploy-backend, deploy-frontend]
+    if: |
+      always() &&
+      needs.deploy-backend.result == 'success' &&
+      (needs.deploy-frontend.result == 'success' || needs.deploy-frontend.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: dev
+    outputs:
+      agent_service_enabled: ${{ steps.enable.outputs.agent_service_enabled }}
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Enable Agent Service
+        id: enable
+        run: |
+          set -euo pipefail
+
+          API_VERSION="2025-04-01-preview"
+          PROJECT_NAME="earth-copilot-agents"
+
+          # -- Discover resources --
+          SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+          echo "Subscription: $SUBSCRIPTION_ID"
+
+          ACCOUNT_NAME=$(az cognitiveservices account list \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "[?kind=='AIServices'].name | [0]" -o tsv)
+          if [ -z "$ACCOUNT_NAME" ]; then
+            echo "ERROR: No AIServices account found in ${{ env.RESOURCE_GROUP }}"
+            echo "Agent Service cannot be enabled without AI Foundry."
+            exit 1
+          fi
+          echo "AI Foundry account: $ACCOUNT_NAME"
+
+          CA_NAME=$(az containerapp list \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "[0].name" -o tsv)
+          if [ -z "$CA_NAME" ]; then
+            echo "ERROR: No Container App found in ${{ env.RESOURCE_GROUP }}"
+            exit 1
+          fi
+          echo "Container App: $CA_NAME"
+
+          BASE_URL="https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.CognitiveServices/accounts/$ACCOUNT_NAME"
+
+          # -- Helper: wait for provisioning --
+          wait_for_provisioning() {
+            local url="$1"
+            local timeout="${2:-120}"
+            local elapsed=0
+            while [ $elapsed -lt $timeout ]; do
+              sleep 10
+              elapsed=$((elapsed + 10))
+              state=$(az rest --method get \
+                --url "${url}?api-version=${API_VERSION}" \
+                --query "properties.provisioningState" -o tsv 2>/dev/null || echo "Unknown")
+              echo "  State: $state (${elapsed}s)"
+              if [ "$state" == "Succeeded" ]; then return 0; fi
+              if [ "$state" == "Failed" ]; then echo "ERROR: Provisioning failed"; return 1; fi
+            done
+            echo "ERROR: Provisioning timed out after ${timeout}s"
+            return 1
+          }
+
+          # -- Step 1: Enable allowProjectManagement --
+          echo ""
+          echo "=== Step 1: Enable allowProjectManagement ==="
+          
+          # Detect current publicNetworkAccess state so we don't undo PE lockdown
+          CURRENT_PNA=$(az cognitiveservices account show \
+            --name "$ACCOUNT_NAME" --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "properties.publicNetworkAccess" -o tsv 2>/dev/null || echo "Enabled")
+          echo "  Current publicNetworkAccess: $CURRENT_PNA"
+          
+          if [ "$CURRENT_PNA" == "Disabled" ]; then
+            NETWORK_ACTION="Deny"
+          else
+            NETWORK_ACTION="Allow"
+          fi
+          
+          BODY=$(cat <<EOF
+          {
+            "location": "${{ env.LOCATION }}",
+            "kind": "AIServices",
+            "sku": { "name": "S0" },
+            "identity": { "type": "SystemAssigned" },
+            "properties": {
+              "allowProjectManagement": true,
+              "customSubDomainName": "$ACCOUNT_NAME",
+              "publicNetworkAccess": "$CURRENT_PNA",
+              "disableLocalAuth": true,
+              "networkAcls": { "defaultAction": "$NETWORK_ACTION" }
+            }
+          }
+          EOF
+          )
+          az rest --method put \
+            --url "${BASE_URL}?api-version=${API_VERSION}" \
+            --body "$BODY" \
+            --query "properties.allowProjectManagement" -o tsv 2>&1 || true
+          wait_for_provisioning "$BASE_URL"
+          echo "  allowProjectManagement enabled"
+
+          # -- Step 2: Create CogSvc project sub-resource --
+          echo ""
+          echo "=== Step 2: Create CogSvc project '$PROJECT_NAME' ==="
+          PROJECT_URL="${BASE_URL}/projects/${PROJECT_NAME}"
+          PROJECT_BODY=$(cat <<EOF
+          {
+            "location": "${{ env.LOCATION }}",
+            "identity": { "type": "SystemAssigned" },
+            "properties": {
+              "description": "Earth Copilot GEOINT Agent Project",
+              "displayName": "Earth Copilot Agents"
+            }
+          }
+          EOF
+          )
+          result=$(az rest --method put \
+            --url "${PROJECT_URL}?api-version=${API_VERSION}" \
+            --body "$PROJECT_BODY" \
+            --query "properties.provisioningState" -o tsv 2>&1 || echo "Unknown")
+          echo "  Project state: $result"
+          if [ "$result" != "Succeeded" ]; then
+            wait_for_provisioning "$PROJECT_URL"
+          fi
+
+          # -- Step 3: Create account-level capability host --
+          echo ""
+          echo "=== Step 3: Create account capability host ==="
+          ACCT_CAP_URL="${BASE_URL}/capabilityHosts/default"
+          az rest --method put \
+            --url "${ACCT_CAP_URL}?api-version=${API_VERSION}" \
+            --body '{"properties":{"capabilityHostKind":"Agents"}}' \
+            --query "properties.provisioningState" -o tsv 2>&1 || true
+          wait_for_provisioning "$ACCT_CAP_URL"
+          echo "  Account capability host created"
+
+          # -- Step 4: Create project-level capability host --
+          echo ""
+          echo "=== Step 4: Create project capability host ==="
+          PROJ_CAP_URL="${PROJECT_URL}/capabilityHosts/default"
+          az rest --method put \
+            --url "${PROJ_CAP_URL}?api-version=${API_VERSION}" \
+            --body '{"properties":{"capabilityHostKind":"Agents"}}' \
+            --query "properties.provisioningState" -o tsv 2>&1 || true
+          wait_for_provisioning "$PROJ_CAP_URL"
+          echo "  Project capability host created"
+
+          # -- Step 5: Assign roles to Container App managed identity --
+          echo ""
+          echo "=== Step 5: Assign roles to Container App MI ==="
+          PRINCIPAL_ID=$(az containerapp show \
+            -n "$CA_NAME" -g ${{ env.RESOURCE_GROUP }} \
+            --query "identity.principalId" -o tsv)
+          echo "  MI Principal ID: $PRINCIPAL_ID"
+
+          SCOPE="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.CognitiveServices/accounts/$ACCOUNT_NAME"
+
+          for ROLE in "Azure AI User" "Cognitive Services OpenAI Contributor"; do
+            echo "  Assigning: $ROLE"
+            az role assignment create \
+              --assignee-object-id "$PRINCIPAL_ID" \
+              --assignee-principal-type ServicePrincipal \
+              --role "$ROLE" \
+              --scope "$SCOPE" \
+              -o none 2>/dev/null || echo "  (already assigned or insufficient permissions)"
+          done
+
+          # -- Step 6: Update AZURE_AI_PROJECT_ENDPOINT env var --
+          echo ""
+          echo "=== Step 6: Update AZURE_AI_PROJECT_ENDPOINT ==="
+          ENDPOINT="https://${ACCOUNT_NAME}.services.ai.azure.com/api/projects/${PROJECT_NAME}"
+          echo "  Endpoint: $ENDPOINT"
+          az containerapp update \
+            -n "$CA_NAME" -g ${{ env.RESOURCE_GROUP }} \
+            --set-env-vars "AZURE_AI_PROJECT_ENDPOINT=$ENDPOINT" \
+            -o none 2>/dev/null || true
+
+          echo ""
+          echo "Agent Service enabled successfully"
+          echo "agent_service_enabled=true" >> $GITHUB_OUTPUT
+
+  # Configure Entra ID Auth for Frontend and Backend (runs after frontend deployment)
+  # -----------------------------------------------------------------------------
+  # Configures Microsoft Entra ID (Azure AD) authentication on both:
+  #   - Frontend Web App  (EasyAuth with login redirect)
+  #   - Backend Container App (EasyAuth with Return401 for unauthenticated requests)
+  #
+  # The frontend forwards the user's id_token as a Bearer header on every API call.
+  # The backend validates the token and returns 401 if missing/invalid.
+  # Health (/api/health), docs (/docs), and OpenAPI (/openapi.json) are excluded.
+  #
+  # Prerequisites (set in GitHub Environment "dev"):
+  #   Secret:   AUTH_CLIENT_ID       — Entra app registration Client ID (REQUIRED)
+  #   Variable: AUTH_AUTHORIZED_USERS — Comma-separated UPNs (optional, e.g. "user@org.com,user2@org.com")
+  #
+  # AUTH_CLIENT_ID must be created manually (one-time setup):
+  #   1. Go to Azure Portal → Entra ID → App registrations → New registration
+  #   2. Name: "<project>-Auth", Supported account types: "Single tenant"
+  #   3. Redirect URI: https://<webapp>.azurewebsites.net/.auth/login/aad/callback
+  #   4. Copy the Application (client) ID
+  #   5. Save: gh secret set AUTH_CLIENT_ID --env dev --body "<CLIENT_ID>"
+  #
+  # If AUTH_CLIENT_ID is not set, auth is skipped and the app is publicly accessible.
+  # See QUICK_DEPLOY.md for setup instructions.
+  # -----------------------------------------------------------------------------
+  configure-auth:
+    name: Configure Entra ID Auth (Frontend + Backend)
+    needs: [deploy-frontend]
+    if: needs.deploy-frontend.result == 'success'
+    runs-on: ubuntu-latest
+    environment: dev
+    outputs:
+      auth_configured: ${{ steps.auth.outputs.auth_configured }}
+    steps:
+      - name: Check auth prerequisites
+        id: check
+        run: |
+          DISABLE_AUTH="${{ github.event.inputs.disable_auth }}"
+          HAS_CLIENT_ID="false"
+          if [ -n "${{ secrets.AUTH_CLIENT_ID }}" ]; then
+            HAS_CLIENT_ID="true"
+          fi
+
+          if [ "$DISABLE_AUTH" == "true" ]; then
+            echo "mode=skip" >> $GITHUB_OUTPUT
+            echo "Auth explicitly disabled — app will be publicly accessible"
+          elif [ "$HAS_CLIENT_ID" == "true" ]; then
+            echo "mode=existing" >> $GITHUB_OUTPUT
+            echo "Using existing app registration from AUTH_CLIENT_ID secret"
+          else
+            echo "mode=skip" >> $GITHUB_OUTPUT
+            echo ""
+            echo "================================================================="
+            echo "AUTH_CLIENT_ID secret is not set — skipping authentication setup."
+            echo "The app will be publicly accessible without login."
+            echo ""
+            echo "To enable Entra ID auth (one-time setup):"
+            echo "  1. Create an app registration in Azure Portal"
+            echo "     -> https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade"
+            echo "  2. Save the Client ID as a GitHub secret:"
+            echo "     -> gh secret set AUTH_CLIENT_ID --env dev --body \"<CLIENT_ID>\""
+            echo "  3. Re-run this pipeline"
+            echo "================================================================="
+          fi
+
+      - name: Azure Login
+        if: steps.check.outputs.mode != 'skip'
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Configure Entra ID Authentication
+        id: auth
+        if: steps.check.outputs.mode == 'existing'
+        env:
+          AUTH_CLIENT_ID: ${{ secrets.AUTH_CLIENT_ID }}
+          AUTH_AUTHORIZED_USERS: ${{ vars.AUTH_AUTHORIZED_USERS }}
+        run: |
+          set -euo pipefail
+
+          # -- Discover Web App --
+          WA_NAME=$(az webapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$WA_NAME" ]; then
+            echo "ERROR: No Web App found in ${{ env.RESOURCE_GROUP }}"
+            exit 1
+          fi
+
+          WEB_URL="https://$(az webapp show --name "$WA_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query defaultHostName -o tsv)"
+          REDIRECT_URI="${WEB_URL}/.auth/login/aad/callback"
+          TENANT_ID=$(az account show --query tenantId -o tsv)
+          CLIENT_ID="$AUTH_CLIENT_ID"
+
+          echo "Web App: $WA_NAME"
+          echo "URL: $WEB_URL"
+          echo "Tenant: $TENANT_ID"
+          echo "Using app registration: $CLIENT_ID"
+
+          # -- Update redirect URI on the app registration --
+          az ad app update --id "$CLIENT_ID" \
+            --web-redirect-uris "$REDIRECT_URI" 2>/dev/null || \
+            echo "WARNING: Could not update redirect URI (SP may lack Graph permission — update manually in Entra portal)"
+
+          # -- Configure EasyAuth on the Web App --
+          # --token-store true is REQUIRED so that /.auth/me returns the id_token,
+          # which the frontend forwards as a Bearer token to the backend API.
+          az webapp auth update \
+            --name "$WA_NAME" \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --enabled true \
+            --action LoginWithAzureActiveDirectory \
+            --aad-allowed-token-audiences "api://$CLIENT_ID" \
+            --aad-client-id "$CLIENT_ID" \
+            --aad-token-issuer-url "https://sts.windows.net/$TENANT_ID/" \
+            --token-store true \
+            --output none 2>/dev/null || {
+            echo "WARNING: Could not configure EasyAuth on Web App"
+            echo "You may need to configure authentication manually in the Azure Portal."
+            echo "Deployment succeeded — app is accessible at: $WEB_URL"
+            exit 0
+          }
+          echo "Frontend EasyAuth configured (redirect to login, token store enabled)"
+
+          # -- Backend API Auth (handled by FastAPI middleware, not EasyAuth) --
+          # Container Apps EasyAuth excludedPaths is unreliable, so auth validation
+          # is done at the application level in auth_middleware.py (EntraAuthMiddleware).
+          # The middleware validates Bearer tokens from the frontend on protected routes,
+          # while allowing /api/health, /docs, etc. through without auth.
+          # We only need to:
+          #   1. Ensure Container App EasyAuth is DISABLED (avoid double-auth)
+          #   2. Configure CORS at the ingress level for cross-origin requests
+          #   3. Pass tenant/client IDs as env vars for the FastAPI middleware
+          echo ""
+          echo "=== Configuring Backend Container App ==="
+          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$CA_NAME" ]; then
+            echo "WARNING: No Container App found — skipping backend config"
+          else
+            echo "Container App: $CA_NAME"
+
+            # Disable Container Apps EasyAuth (auth is handled by FastAPI middleware)
+            az containerapp auth update \
+              --name "$CA_NAME" \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --enabled false \
+              --output none 2>/dev/null || {
+              echo "WARNING: Could not disable EasyAuth — may already be disabled"
+            }
+            echo "Container App EasyAuth disabled (auth handled by FastAPI middleware)"
+
+            # Set Entra ID env vars for the FastAPI auth middleware
+            az containerapp update \
+              --name "$CA_NAME" \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --set-env-vars \
+                "AZURE_AD_TENANT_ID=$TENANT_ID" \
+                "AZURE_AD_CLIENT_ID=$CLIENT_ID" \
+              --output none 2>/dev/null || {
+              echo "WARNING: Could not set auth env vars on Container App"
+            }
+            echo "Auth env vars set (AZURE_AD_TENANT_ID, AZURE_AD_CLIENT_ID)"
+
+            BACKEND_URL="https://$(az containerapp show --name "$CA_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query 'properties.configuration.ingress.fqdn' -o tsv)"
+            echo "Backend URL: $BACKEND_URL"
+
+            # Configure CORS at the ingress level for cross-origin requests from the frontend
+            az containerapp ingress cors update \
+              --name "$CA_NAME" \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --allowed-origins "$WEB_URL" "https://localhost:5173" \
+              --allowed-methods "GET" "POST" "PUT" "DELETE" "OPTIONS" "PATCH" \
+              --allowed-headers "*" \
+              --allow-credentials true \
+              --expose-headers "*" \
+              --output none 2>/dev/null || {
+              echo "WARNING: Could not configure CORS on Container App ingress"
+            }
+            echo "Ingress CORS configured for frontend: $WEB_URL"
+          fi
+
+          # -- Ensure service principal exists (needed only for user-level restrictions) --
+          SP_ID=$(az ad sp show --id "$CLIENT_ID" --query id -o tsv 2>/dev/null || true)
+          if [ -z "$SP_ID" ]; then
+            SP_ID=$(az ad sp create --id "$CLIENT_ID" --query id -o tsv 2>/dev/null || true)
+            if [ -z "$SP_ID" ]; then
+              echo "WARNING: Could not find or create service principal for $CLIENT_ID"
+              echo "EasyAuth is enabled but user-level restrictions require manual SP setup."
+            fi
+            [ -n "$SP_ID" ] && echo "Created service principal: $SP_ID"
+          else
+            echo "Service principal exists: $SP_ID"
+          fi
+
+          # -- Restrict access to assigned users only (only when AUTH_AUTHORIZED_USERS is set) --
+          if [ -z "$AUTH_AUTHORIZED_USERS" ] || [ -z "$SP_ID" ]; then
+            if [ -z "$AUTH_AUTHORIZED_USERS" ]; then
+              echo "No AUTH_AUTHORIZED_USERS configured — all tenant users can access the app"
+            fi
+            # Don't set appRoleAssignmentRequired=true when no users are listed or no SP,
+            # otherwise everyone gets blocked (AADSTS50105).
+          else
+            az ad sp update --id "$SP_ID" --set appRoleAssignmentRequired=true 2>/dev/null || \
+              echo "WARNING: Could not set appRoleAssignmentRequired (SP may lack permission)"
+
+          # -- Assign authorized users --
+            ASSIGNED=0
+            SKIPPED=0
+            DEFAULT_ROLE_ID="00000000-0000-0000-0000-000000000000"
+
+            IFS=',' read -ra USERS <<< "$AUTH_AUTHORIZED_USERS"
+            for EMAIL in "${USERS[@]}"; do
+              EMAIL=$(echo "$EMAIL" | xargs)  # trim whitespace
+              [ -z "$EMAIL" ] && continue
+
+              USER_ID=$(az ad user show --id "$EMAIL" --query id -o tsv 2>/dev/null || true)
+              if [ -z "$USER_ID" ]; then
+                echo "WARNING: User not found: $EMAIL (not in tenant — invite as B2B guest first)"
+                continue
+              fi
+
+              # Check if already assigned
+              EXISTING=$(az rest --method GET \
+                --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$SP_ID/appRoleAssignedTo" \
+                --query "value[?principalId=='$USER_ID'] | length(@)" -o tsv 2>/dev/null || echo "0")
+
+              if [ "$EXISTING" != "0" ]; then
+                echo "Already assigned: $EMAIL"
+                SKIPPED=$((SKIPPED + 1))
+                continue
+              fi
+
+              az rest --method POST \
+                --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$SP_ID/appRoleAssignedTo" \
+                --headers "Content-Type=application/json" \
+                --body "{\"principalId\": \"$USER_ID\", \"resourceId\": \"$SP_ID\", \"appRoleId\": \"$DEFAULT_ROLE_ID\"}" \
+                --output none 2>/dev/null || { echo "WARNING: Could not assign $EMAIL"; continue; }
+              echo "Assigned: $EMAIL"
+              ASSIGNED=$((ASSIGNED + 1))
+            done
+            echo "User assignment complete: $ASSIGNED new, $SKIPPED already assigned"
+          fi
+
+          echo ""
+          echo "Authentication configured successfully"
+          echo "URL: $WEB_URL"
+          echo "auth_configured=true" >> $GITHUB_OUTPUT
+
+  # Summary
+  summary:
+    name: Deployment Summary
+    needs: [detect-changes, deploy-infrastructure, deploy-backend, deploy-frontend, enable-agent-service, configure-auth]
+    if: always()
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Generate Summary
+        run: |
+          echo "# Earth Copilot Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## Components Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "| Component | Changed | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Infrastructure
+          if [ "${{ needs.detect-changes.outputs.infra }}" == "true" ]; then
+            if [ "${{ needs.deploy-infrastructure.result }}" == "success" ]; then
+              echo "| Infrastructure | Yes | Deployed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Infrastructure | Yes | Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "| Infrastructure | No | Skipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Backend
+          if [ "${{ needs.detect-changes.outputs.backend }}" == "true" ] || [ "${{ needs.detect-changes.outputs.infra }}" == "true" ]; then
+            if [ "${{ needs.deploy-backend.result }}" == "success" ]; then
+              echo "| Backend | Yes | Deployed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Backend | Yes | Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "| Backend | No | Skipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Frontend
+          if [ "${{ needs.detect-changes.outputs.frontend }}" == "true" ] || [ "${{ needs.detect-changes.outputs.infra }}" == "true" ]; then
+            if [ "${{ needs.deploy-frontend.result }}" == "success" ]; then
+              echo "| Frontend | Yes | Deployed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Frontend | Yes | Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "| Frontend | No | Skipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Discover actual resource names and URLs
+          WA_NAME=$(az webapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv 2>/dev/null || echo "")
+          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv 2>/dev/null || echo "")
+          
+          if [ -n "$WA_NAME" ]; then
+            WEB_URL=$(az webapp show --resource-group ${{ env.RESOURCE_GROUP }} --name "$WA_NAME" --query "defaultHostName" -o tsv)
+            echo "- **Frontend**: https://$WEB_URL" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Frontend**: Not deployed yet" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -n "$CA_NAME" ]; then
+            CA_URL=$(az containerapp show --resource-group ${{ env.RESOURCE_GROUP }} --name "$CA_NAME" --query "properties.configuration.ingress.fqdn" -o tsv)
+            echo "- **Backend API**: https://$CA_URL" >> $GITHUB_STEP_SUMMARY
+            echo "- **API Docs**: https://$CA_URL/docs" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Backend**: Not deployed yet" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Authentication" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.configure-auth.outputs.auth_configured }}" == "true" ]; then
+            echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Mode | Microsoft Entra ID (Single Tenant) |" >> $GITHUB_STEP_SUMMARY
+            echo "| Access | Restricted to assigned users |" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.configure-auth.result }}" == "skipped" ]; then
+            echo "Auth was explicitly disabled. To enable, re-run without **disable_auth** or set \`AUTH_CLIENT_ID\` secret." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Auth not configured — check workflow logs for instructions on enabling authentication." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Agent Service (GEOINT)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.enable-agent-service.outputs.agent_service_enabled }}" == "true" ]; then
+            echo "Agent Service enabled — all GEOINT agents (Vision, Terrain, Mobility, Building Damage, Comparison, Extreme Weather) are ready." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.enable-agent-service.result }}" == "skipped" ]; then
+            echo "Agent Service skipped (backend did not deploy). Run the workflow with \`force_all\` to enable." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Agent Service enablement failed — GEOINT agents will not function. Check workflow logs or run manually: \`./scripts/enable-agent-service.ps1\`" >> $GITHUB_STEP_SUMMARY
+          fi
