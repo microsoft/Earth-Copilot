@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "earth-copilot": {
+      "url": "https://your-mcp-server.azurecontainerapps.io/mcp"
+    }
+  }
+}

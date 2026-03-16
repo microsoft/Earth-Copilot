@@ -1,0 +1,243 @@
+/* Copyright (c) Microsoft Corporation. */
+/* Licensed under the MIT license. */
+
+.health-check-info {
+  position: relative;
+  display: inline-block;
+  z-index: 1000;
+}
+
+/* Match STAC button styling */
+.health-info-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(0, 120, 212, 0.3);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.health-info-button:hover {
+  background-color: #0078d4;
+  border-color: #0078d4;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.3);
+}
+
+.health-info-button svg {
+  transition: transform 0.3s ease;
+}
+
+.health-info-button:hover svg {
+  transform: rotate(15deg);
+}
+
+.health-button-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* Legacy icon support (kept for backwards compatibility) */
+.health-info-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.health-info-icon:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+.health-tooltip {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 400px;
+  max-width: 90vw;
+  background-color: rgba(0, 0, 0, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  padding: 0;
+  animation: fadeInSlideDown 0.3s ease;
+  backdrop-filter: blur(10px);
+  z-index: 10000;
+}
+
+@keyframes fadeInSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.health-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(0, 120, 212, 0.2), rgba(0, 90, 158, 0.2));
+}
+
+.health-tooltip-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.health-status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.health-tooltip-content {
+  padding: 16px 20px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.health-tooltip-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.health-tooltip-content::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.health-tooltip-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.health-tooltip-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.health-section {
+  margin-bottom: 20px;
+}
+
+.health-section:last-child {
+  margin-bottom: 0;
+}
+
+.health-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.health-status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.health-status-item.error {
+  color: #F44336;
+  font-weight: 500;
+}
+
+.health-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 400;
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.health-value {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  text-align: right;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 13px;
+}
+
+.health-value.success {
+  color: #4CAF50;
+}
+
+.health-value.error {
+  color: #F44336;
+}
+
+.health-value.warning {
+  color: #FF9800;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .health-tooltip {
+    width: 320px;
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+  }
+
+  .health-tooltip-header {
+    padding: 12px 16px;
+  }
+
+  .health-tooltip-content {
+    padding: 12px 16px;
+  }
+
+  .health-status-item {
+    font-size: 13px;
+  }
+
+  .health-value {
+    font-size: 12px;
+  }
+}
+
+/* Dark theme adjustments */
+@media (prefers-color-scheme: dark) {
+  .health-tooltip {
+    background-color: rgba(18, 18, 18, 0.98);
+  }
+
+  .health-info-icon {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .health-info-icon:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+}

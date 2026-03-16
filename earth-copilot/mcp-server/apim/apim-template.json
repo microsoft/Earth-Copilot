@@ -1,0 +1,359 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "apimServiceName": {
+      "type": "string",
+      "defaultValue": "earth-copilot-apim",
+      "metadata": {
+        "description": "Name of the API Management service"
+      }
+    },
+    "publisherEmail": {
+      "type": "string",
+      "metadata": {
+        "description": "Email address of the publisher"
+      }
+    },
+    "publisherName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the publisher"
+      }
+    },
+    "sku": {
+      "type": "string",
+      "defaultValue": "Developer",
+      "allowedValues": [
+        "Developer",
+        "Standard",
+        "Premium"
+      ],
+      "metadata": {
+        "description": "SKU of the API Management service"
+      }
+    },
+    "mcpServerUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "URL of the Earth-Copilot MCP server backend"
+      }
+    }
+  },
+  "variables": {
+    "apiName": "earth-copilot-mcp-api",
+    "apiDisplayName": "Earth-Copilot MCP API",
+    "apiDescription": "Model Context Protocol API for Earth-Copilot geospatial intelligence",
+    "apiPath": "earth-copilot/mcp",
+    "backendName": "earth-copilot-mcp-backend"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ApiManagement/service",
+      "apiVersion": "2021-08-01",
+      "name": "[parameters('apimServiceName')]",
+      "location": "[resourceGroup().location]",
+      "sku": {
+        "name": "[parameters('sku')]",
+        "capacity": 1
+      },
+      "properties": {
+        "publisherEmail": "[parameters('publisherEmail')]",
+        "publisherName": "[parameters('publisherName')]",
+        "customProperties": {
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10": "false",
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11": "false",
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30": "false",
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10": "false",
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11": "false",
+          "Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30": "false"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/backends",
+      "apiVersion": "2021-08-01",
+      "name": "[format('{0}/{1}', parameters('apimServiceName'), variables('backendName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName'))]"
+      ],
+      "properties": {
+        "description": "Earth-Copilot MCP Server Backend",
+        "url": "[parameters('mcpServerUrl')]",
+        "protocol": "http",
+        "circuitBreaker": {
+          "rules": [
+            {
+              "failureCondition": {
+                "count": 3,
+                "errorReasons": [
+                  "Server errors"
+                ],
+                "interval": "PT5M",
+                "statusCodeRanges": [
+                  {
+                    "min": 500,
+                    "max": 599
+                  }
+                ]
+              },
+              "name": "mcp-server-circuit-breaker",
+              "tripDuration": "PT1M"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis",
+      "apiVersion": "2021-08-01",
+      "name": "[format('{0}/{1}', parameters('apimServiceName'), variables('apiName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service', parameters('apimServiceName'))]"
+      ],
+      "properties": {
+        "displayName": "[variables('apiDisplayName')]",
+        "description": "[variables('apiDescription')]",
+        "path": "[variables('apiPath')]",
+        "protocols": [
+          "https"
+        ],
+        "serviceUrl": "[parameters('mcpServerUrl')]",
+        "subscriptionRequired": true,
+        "type": "http",
+        "format": "openapi+json",
+        "value": {
+          "openapi": "3.0.0",
+          "info": {
+            "title": "Earth-Copilot MCP API",
+            "description": "Model Context Protocol API for geospatial intelligence",
+            "version": "1.0.0"
+          },
+          "servers": [
+            {
+              "url": "[concat('https://', parameters('apimServiceName'), '.azure-api.net/', variables('apiPath'))]"
+            }
+          ],
+          "paths": {
+            "/tools/list": {
+              "post": {
+                "summary": "List available MCP tools",
+                "description": "Returns list of available geospatial analysis tools",
+                "operationId": "listTools",
+                "tags": ["MCP Tools"],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/MCPRequest"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "List of available tools",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ToolsListResponse"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/tools/call": {
+              "post": {
+                "summary": "Call MCP tool",
+                "description": "Execute a geospatial analysis tool",
+                "operationId": "callTool",
+                "tags": ["MCP Tools"],
+                "requestBody": {
+                  "required": true,
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "$ref": "#/components/schemas/ToolCallRequest"
+                      }
+                    }
+                  }
+                },
+                "responses": {
+                  "200": {
+                    "description": "Tool execution result",
+                    "content": {
+                      "application/json": {
+                        "schema": {
+                          "$ref": "#/components/schemas/ToolCallResponse"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "/resources/list": {
+              "post": {
+                "summary": "List available MCP resources",
+                "description": "Returns list of available Earth observation resources",
+                "operationId": "listResources",
+                "tags": ["MCP Resources"],
+                "responses": {
+                  "200": {
+                    "description": "List of available resources"
+                  }
+                }
+              }
+            },
+            "/resources/read": {
+              "post": {
+                "summary": "Read MCP resource",
+                "description": "Read Earth observation resource data",
+                "operationId": "readResource",
+                "tags": ["MCP Resources"],
+                "responses": {
+                  "200": {
+                    "description": "Resource data"
+                  }
+                }
+              }
+            },
+            "/prompts/list": {
+              "post": {
+                "summary": "List available MCP prompts",
+                "description": "Returns list of available specialized prompts",
+                "operationId": "listPrompts",
+                "tags": ["MCP Prompts"],
+                "responses": {
+                  "200": {
+                    "description": "List of available prompts"
+                  }
+                }
+              }
+            },
+            "/prompts/get": {
+              "post": {
+                "summary": "Get MCP prompt",
+                "description": "Get specialized geospatial analysis prompt",
+                "operationId": "getPrompt",
+                "tags": ["MCP Prompts"],
+                "responses": {
+                  "200": {
+                    "description": "Prompt content"
+                  }
+                }
+              }
+            }
+          },
+          "components": {
+            "schemas": {
+              "MCPRequest": {
+                "type": "object",
+                "properties": {
+                  "jsonrpc": {
+                    "type": "string",
+                    "example": "2.0"
+                  },
+                  "id": {
+                    "type": "string"
+                  },
+                  "method": {
+                    "type": "string"
+                  },
+                  "params": {
+                    "type": "object"
+                  }
+                }
+              },
+              "ToolsListResponse": {
+                "type": "object",
+                "properties": {
+                  "tools": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              },
+              "ToolCallRequest": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "arguments": {
+                    "type": "object"
+                  }
+                }
+              },
+              "ToolCallResponse": {
+                "type": "object",
+                "properties": {
+                  "content": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            },
+            "securitySchemes": {
+              "apiKeyHeader": {
+                "type": "apiKey",
+                "name": "Ocp-Apim-Subscription-Key",
+                "in": "header"
+              },
+              "apiKeyQuery": {
+                "type": "apiKey",
+                "name": "subscription-key",
+                "in": "query"
+              }
+            }
+          },
+          "security": [
+            {
+              "apiKeyHeader": []
+            },
+            {
+              "apiKeyQuery": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.ApiManagement/service/apis/policies",
+      "apiVersion": "2021-08-01",
+      "name": "[format('{0}/{1}/policy', parameters('apimServiceName'), variables('apiName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ApiManagement/service/apis', parameters('apimServiceName'), variables('apiName'))]"
+      ],
+      "properties": {
+        "value": "[concat('<policies>\n    <inbound>\n        <base />\n        <!-- Authentication -->\n        <validate-jwt header-name=\"Authorization\" failed-validation-httpcode=\"401\" failed-validation-error-message=\"Unauthorized. Access token is missing or invalid.\">\n            <openid-config url=\"https://login.microsoftonline.com/common/v2.0/.well-known/openid_configuration\" />\n            <audiences>\n                <audience>api://earth-copilot</audience>\n            </audiences>\n        </validate-jwt>\n        \n        <!-- Rate limiting per subscription -->\n        <rate-limit calls=\"1000\" renewal-period=\"3600\" />\n        \n        <!-- Quota per subscription -->\n        <quota calls=\"10000\" renewal-period=\"604800\" />\n        \n        <!-- Request caching -->\n        <cache-lookup vary-by-developer=\"false\" vary-by-developer-groups=\"false\" downstream-caching-type=\"none\">\n            <vary-by-header>Accept</vary-by-header>\n            <vary-by-header>Accept-Charset</vary-by-header>\n            <vary-by-header>Authorization</vary-by-header>\n            <vary-by-query-parameter>*</vary-by-query-parameter>\n        </cache-lookup>\n        \n        <!-- CORS -->\n        <cors allow-credentials=\"true\">\n            <allowed-origins>\n                <origin>https://earth-copilot.microsoft.com</origin>\n                <origin>https://localhost:3000</origin>\n            </allowed-origins>\n            <allowed-methods preflight-result-max-age=\"300\">\n                <method>GET</method>\n                <method>POST</method>\n                <method>OPTIONS</method>\n            </allowed-methods>\n            <allowed-headers>\n                <header>*</header>\n            </allowed-headers>\n        </cors>\n        \n        <!-- Set backend -->\n        <set-backend-service backend-id=\"', variables('backendName'), '\" />\n        \n        <!-- Request transformation -->\n        <set-header name=\"X-MCP-Version\" exists-action=\"override\">\n            <value>1.0</value>\n        </set-header>\n        <set-header name=\"X-Request-ID\" exists-action=\"override\">\n            <value>@(Guid.NewGuid().ToString())</value>\n        </set-header>\n        \n    </inbound>\n    <backend>\n        <base />\n        <!-- Timeout and retry policies -->\n        <retry condition=\"@(context.Response.StatusCode >= 500)\" count=\"3\" interval=\"2\" max-interval=\"10\" delta=\"1\">\n            <forward-request timeout=\"60\" />\n        </retry>\n    </backend>\n    <outbound>\n        <base />\n        \n        <!-- Response caching -->\n        <cache-store duration=\"300\" />\n        \n        <!-- Response headers -->\n        <set-header name=\"X-Powered-By\" exists-action=\"override\">\n            <value>Earth-Copilot MCP API</value>\n        </set-header>\n        <set-header name=\"X-Response-Time\" exists-action=\"override\">\n            <value>@(context.Elapsed.TotalMilliseconds.ToString())</value>\n        </set-header>\n        \n        <!-- Security headers -->\n        <set-header name=\"X-Content-Type-Options\" exists-action=\"override\">\n            <value>nosniff</value>\n        </set-header>\n        <set-header name=\"X-Frame-Options\" exists-action=\"override\">\n            <value>DENY</value>\n        </set-header>\n        <set-header name=\"Strict-Transport-Security\" exists-action=\"override\">\n            <value>max-age=31536000; includeSubDomains</value>\n        </set-header>\n        \n    </outbound>\n    <on-error>\n        <base />\n        \n        <!-- Error logging -->\n        <log-to-eventhub logger-id=\"earth-copilot-logger\" partition-id=\"0\">\n            @{\n                return new JObject(\n                    new JProperty(\"timestamp\", DateTime.UtcNow.ToString()),\n                    new JProperty(\"service\", \"earth-copilot-mcp\"),\n                    new JProperty(\"request-id\", context.RequestId),\n                    new JProperty(\"error\", context.LastError.Message),\n                    new JProperty(\"status-code\", context.Response.StatusCode),\n                    new JProperty(\"method\", context.Request.Method),\n                    new JProperty(\"url\", context.Request.Url.ToString())\n                ).ToString();\n            }\n        </log-to-eventhub>\n        \n    </on-error>\n</policies>')]"
+      }
+    }
+  ],
+  "outputs": {
+    "apimServiceName": {
+      "type": "string",
+      "value": "[parameters('apimServiceName')]"
+    },
+    "apimGatewayUrl": {
+      "type": "string",
+      "value": "[concat('https://', parameters('apimServiceName'), '.azure-api.net')]"
+    },
+    "mcpApiPath": {
+      "type": "string",
+      "value": "[variables('apiPath')]"
+    },
+    "fullApiUrl": {
+      "type": "string",
+      "value": "[concat('https://', parameters('apimServiceName'), '.azure-api.net/', variables('apiPath'))]"
+    }
+  }
+}

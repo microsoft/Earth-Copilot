@@ -1,0 +1,2998 @@
+{
+  "metadata": {
+    "total_collections": 72,
+    "last_updated": "2025-11-12",
+    "source": "planetary-computer-tasks repository (config.json, description.md, template.json)",
+    "note": "AUTO-GENERATED - Do not edit manually. Regenerate using scripts/extract_all_pc_configs.py",
+    "extraction_timestamp": "2025-11-12T08:39:31.218122",
+    "pc_repo_path": "planetary-computer-tasks\\datasets",
+    "contains": [
+      "rendering configurations (colormap, rescale, assets)",
+      "metadata (descriptions, keywords, titles)",
+      "classification (data_type, capabilities)",
+      "categories (for GPT catalog grouping)"
+    ]
+  },
+  "categories": [
+    {
+      "name": "Elevation & Terrain",
+      "count": 13,
+      "collections": [
+        {
+          "id": "3dep-lidar-classification",
+          "title": "3Dep Lidar Classification",
+          "description": "USGS 3DEP LiDAR CLASSIFICATION product providing high-resolution elevation and terrain data across the United States.",
+          "keywords": []
+        },
+        {
+          "id": "3dep-lidar-dsm",
+          "title": "3Dep Lidar Dsm",
+          "description": "USGS 3DEP LiDAR DSM product providing high-resolution elevation and terrain data across the United States.",
+          "keywords": []
+        },
+        {
+          "id": "3dep-lidar-dtm",
+          "title": "3Dep Lidar Dtm",
+          "description": "USGS 3DEP LiDAR DTM product providing high-resolution elevation and terrain data across the United States.",
+          "keywords": []
+        },
+        {
+          "id": "3dep-lidar-dtm-native",
+          "title": "3Dep Lidar Dtm Native",
+          "description": "USGS 3DEP LiDAR NATIVE product providing high-resolution elevation and terrain data across the United States.",
+          "keywords": []
+        },
+        {
+          "id": "3dep-lidar-hag",
+          "title": "3Dep Lidar Hag",
+          "description": "USGS 3DEP LiDAR HAG product providing high-resolution elevation and terrain data across the United States.",
+          "keywords": []
+        },
+        {
+          "id": "3dep-lidar-intensity",
+          "title": "3Dep Lidar Intensity",
+          "description": "USGS 3DEP LiDAR INTENSITY product providing high-resolution elevation and terrain data across the United States.",
+          "keywords": []
+        },
+        {
+          "id": "3dep-lidar-pointsourceid",
+          "title": "3Dep Lidar Pointsourceid",
+          "description": "USGS 3DEP LiDAR POINTSOURCEID product providing high-resolution elevation and terrain data across the United States.",
+          "keywords": []
+        },
+        {
+          "id": "3dep-lidar-returns",
+          "title": "3Dep Lidar Returns",
+          "description": "USGS 3DEP LiDAR RETURNS product providing high-resolution elevation and terrain data across the United States.",
+          "keywords": []
+        },
+        {
+          "id": "3dep-seamless",
+          "title": "3Dep Seamless",
+          "description": "USGS 3D Elevation Program providing seamless elevation data for the United States.",
+          "keywords": []
+        },
+        {
+          "id": "alos-dem",
+          "title": "Alos Dem",
+          "description": "Advanced Land Observing Satellite (ALOS) digital elevation model providing 30m resolution global terrain data.",
+          "keywords": []
+        },
+        {
+          "id": "cop-dem-glo-30",
+          "title": "Cop Dem Glo 30",
+          "description": "Cop Dem Glo 30 digital elevation model providing terrain height information.",
+          "keywords": []
+        },
+        {
+          "id": "cop-dem-glo-90",
+          "title": "Cop Dem Glo 90",
+          "description": "Cop Dem Glo 90 digital elevation model providing terrain height information.",
+          "keywords": []
+        },
+        {
+          "id": "nasadem",
+          "title": "Nasadem",
+          "description": "Nasadem digital elevation model providing terrain height information.",
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "name": "Fire Detection & Analysis",
+      "count": 3,
+      "collections": [
+        {
+          "id": "modis-14A1-061",
+          "title": "MODIS Thermal Anomalies/Fire Daily",
+          "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Thermal Anomalies and Fire Daily Version 6.1 data are generated every eight days at 1 kilometer (km) spatial resolution as a Level 3 product. MOD14A1 contains eight consecutive days of fire data conveniently packaged into a single file. The Science Dataset (SDS) layers include the fire mask, pixel quality indicators, maximum fire radiative power (MaxFRP), and the position of the fire pixel within the scan. Each layer consists of daily ...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Fire",
+            "MOD14A1",
+            "MYD14A1"
+          ]
+        },
+        {
+          "id": "modis-14A2-061",
+          "title": "MODIS Thermal Anomalies/Fire 8-Day",
+          "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Thermal Anomalies and Fire 8-Day Version 6.1 data are generated at 1 kilometer (km) spatial resolution as a Level 3 product. The MOD14A2 gridded composite contains the maximum value of the individual fire pixel classes detected during the eight days of acquisition. The Science Dataset (SDS) layers include the fire mask and pixel quality indicators.",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Fire",
+            "MOD14A2",
+            "MYD14A2"
+          ]
+        },
+        {
+          "id": "modis-64A1-061",
+          "title": "MODIS Burned Area Monthly",
+          "description": "The Terra and Aqua combined MCD64A1 Version 6.1 Burned Area data product is a monthly, global gridded 500 meter (m) product containing per-pixel burned-area and quality information. The MCD64A1 burned-area mapping approach employs 500 m Moderate Resolution Imaging Spectroradiometer (MODIS) Surface Reflectance imagery coupled with 1 kilometer (km) MODIS active fire observations. The algorithm uses a burn sensitive Vegetation Index (VI) to create dynamic thresholds that are applied to the compo...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Imagery",
+            "Global",
+            "Fire",
+            "MCD64A1"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Land Cover & Land Use",
+      "count": 7,
+      "collections": [
+        {
+          "id": "drcog-lulc",
+          "title": "Drcog Lulc",
+          "description": "Drcog Lulc land cover classification dataset.",
+          "keywords": []
+        },
+        {
+          "id": "esa-worldcover",
+          "title": "ESA WorldCover",
+          "description": "The European Space Agency (ESA) [WorldCover](https://esa-worldcover.org/en) product provides global land cover maps for the years 2020 and 2021 at 10 meter resolution based on the combination of [Sentinel-1](https://sentinel.esa.int/web/sentinel/missions/sentinel-1) radar data and [Sentinel-2](https://sentinel.esa.int/web/sentinel/missions/sentinel-2) imagery. The discrete classification maps provide 11 classes defined using the Land Cover Classification System (LCCS) developed by the United ...",
+          "keywords": [
+            "Global",
+            "Land Cover",
+            "Sentinel",
+            "ESA"
+          ]
+        },
+        {
+          "id": "io-lulc",
+          "title": "Esri 10-Meter Land Cover (10-class)",
+          "description": "__Note__: _A new version of this item is available for your use. This mature version of the map remains available for use in existing applications. This item will be retired in December 2024. There is 2020 data available in the newer [9-class dataset](https://planetarycomputer.microsoft.com/dataset/io-lulc-9-class)._ Global estimates of 10-class land use/land cover (LULC) for 2020, derived from ESA Sentinel-2 imagery at 10m resolution.  This dataset was generated by [Impact Observatory](http:...",
+          "keywords": [
+            "Global",
+            "Land Cover",
+            "Land Use",
+            "Sentinel"
+          ]
+        },
+        {
+          "id": "io-lulc-9-class",
+          "title": "10m Annual Land Use Land Cover (9-class) V1",
+          "description": "__Note__: _A new version of this item is available for your use. This mature version of the map remains available for use in existing applications. This item will be retired in December 2024. There is 2023 data available in the newer [9-class v2 dataset](https://planetarycomputer.microsoft.com/dataset/io-lulc-annual-v02)._ Time series of annual global maps of land use and land cover (LULC). It currently has data from 2017-2022. The maps are derived from ESA Sentinel-2 imagery at 10m resolutio...",
+          "keywords": [
+            "Global",
+            "Land Cover",
+            "Land Use",
+            "Sentinel"
+          ]
+        },
+        {
+          "id": "io-lulc-annual-v02",
+          "title": "10m Annual Land Use Land Cover (9-class) V2",
+          "description": "Time series of annual global maps of land use and land cover (LULC). It currently has data from 2017-2023. The maps are derived from ESA Sentinel-2 imagery at 10m resolution. Each map is a composite of LULC predictions for 9 classes throughout the year in order to generate a representative snapshot of each year. This dataset, produced by [Impact Observatory](http://impactobservatory.com/), Microsoft, and Esri, displays a global map of land use and land cover (LULC) derived from ESA Sentinel-2...",
+          "keywords": [
+            "Global",
+            "Land Cover",
+            "Land Use",
+            "Sentinel"
+          ]
+        },
+        {
+          "id": "nrcan-landcover",
+          "title": "Nrcan Landcover",
+          "description": "Natural Resources Canada land cover classification providing comprehensive coverage of Canadian landscapes.",
+          "keywords": []
+        },
+        {
+          "id": "usda-cdl",
+          "title": "USDA Cropland Data Layers (CDLs)",
+          "description": "The Cropland Data Layer (CDL) is a product of the USDA National Agricultural Statistics Service (NASS) with the mission \"to provide timely, accurate and useful statistics in service to U.S. agriculture\" (Johnson and Mueller, 2010, p. 1204). The CDL is a crop-specific land cover classification product of more than 100 crop categories grown in the United States. CDLs are derived using a supervised land cover classification of satellite imagery. The supervised classification relies on first manu...",
+          "keywords": [
+            "USDA",
+            "United States",
+            "Land Cover",
+            "Land Use",
+            "Agriculture"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Optical Satellite Imagery",
+      "count": 7,
+      "collections": [
+        {
+          "id": "hls2-l30",
+          "title": "Harmonized Landsat Sentinel-2 (HLS) Version 2.0, Landsat Data",
+          "description": "Harmonized Landsat Sentinel-2 (HLS) Version 2.0 provides consistent surface reflectance (SR) and top of atmosphere (TOA) brightness data from the Operational Land Imager (OLI) aboard the joint NASA/USGS Landsat 8 and Landsat 9 satellites and the Multi-Spectral Instrument (MSI) aboard the ESA (European Space Agency) Sentinel-2A, Sentinel-2B, and Sentinel-2C satellites. The combined measurement enables global observations of the land every 2-3 days at 30 meter (m) spatial resolution. The HLS-S3...",
+          "keywords": [
+            "Sentinel",
+            "Landsat",
+            "HLS",
+            "Satellite",
+            "Global",
+            "Imagery"
+          ]
+        },
+        {
+          "id": "hls2-s30",
+          "title": "Harmonized Landsat Sentinel-2 (HLS) Version 2.0, Sentinel-2 Data",
+          "description": "Harmonized Landsat Sentinel-2 (HLS) Version 2.0 provides consistent surface reflectance (SR) and top of atmosphere (TOA) brightness data from the Operational Land Imager (OLI) aboard the joint NASA/USGS Landsat 8 and Landsat 9 satellites and the Multi-Spectral Instrument (MSI) aboard the ESA (European Space Agency) Sentinel-2A, Sentinel-2B, and Sentinel-2C satellites. The combined measurement enables global observations of the land every 2-3 days at 30 meter (m) spatial resolution. The HLS-S3...",
+          "keywords": [
+            "Sentinel",
+            "Landsat",
+            "HLS",
+            "Satellite",
+            "Global",
+            "Imagery"
+          ]
+        },
+        {
+          "id": "modis-09A1-061",
+          "title": "MODIS Surface Reflectance 8-Day (500m)",
+          "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) 09A1 Version 6.1 product provides an estimate of the surface spectral reflectance of MODIS Bands 1 through 7 corrected for atmospheric conditions such as gasses, aerosols, and Rayleigh scattering. Along with the seven 500 meter (m) reflectance bands are two quality layers and four observation bands. For each pixel, a value is selected from all the acquisitions within the 8-day composite period. The criteria for the pixel choice include...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Imagery",
+            "Global",
+            "Reflectance",
+            "MOD09A1",
+            "MYD09A1"
+          ]
+        },
+        {
+          "id": "modis-09Q1-061",
+          "title": "MODIS Surface Reflectance 8-Day (250m)",
+          "description": "The 09Q1 Version 6.1 product provides an estimate of the surface spectral reflectance of Moderate Resolution Imaging Spectroradiometer (MODIS) Bands 1 and 2, corrected for atmospheric conditions such as gasses, aerosols, and Rayleigh scattering. Provided along with the 250 meter (m) surface reflectance bands are two quality layers. For each pixel, a value is selected from all the acquisitions within the 8-day composite period. The criteria for the pixel choice include cloud and solar zenith. ...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Imagery",
+            "Global",
+            "Reflectance",
+            "MOD09Q1",
+            "MYD09Q1"
+          ]
+        },
+        {
+          "id": "modis-43A4-061",
+          "title": "MODIS Nadir BRDF-Adjusted Reflectance (NBAR) Daily",
+          "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) MCD43A4 Version 6.1 Nadir Bidirectional Reflectance Distribution Function (BRDF)-Adjusted Reflectance (NBAR) dataset is produced daily using 16 days of Terra and Aqua MODIS data at 500 meter (m) resolution. The view angle effects are removed from the directional reflectances, resulting in a stable and consistent NBAR product. Data are temporally weighted to the ninth day which is reflected in the Julian date in the file name. Users are...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Imagery",
+            "Global",
+            "Reflectance",
+            "MCD43A4"
+          ]
+        },
+        {
+          "id": "naip",
+          "title": "NAIP: National Agriculture Imagery Program",
+          "description": "The [National Agriculture Imagery Program](https://www.fsa.usda.gov/programs-and-services/aerial-photography/imagery-programs/naip-imagery/) (NAIP)  provides U.S.-wide, high-resolution aerial imagery, with four spectral bands (R, G, B, IR).  NAIP is administered by the [Aerial Field Photography Office](https://www.fsa.usda.gov/programs-and-services/aerial-photography/) (AFPO)  within the [US Department of Agriculture](https://www.usda.gov/) (USDA).  Data are captured at least once every three...",
+          "keywords": [
+            "NAIP",
+            "Aerial",
+            "Imagery",
+            "USDA",
+            "AFPO",
+            "Agriculture",
+            "United States"
+          ]
+        },
+        {
+          "id": "sentinel-2",
+          "title": "Sentinel-2 Level-2A",
+          "description": "The [Sentinel-2](https://sentinel.esa.int/web/sentinel/missions/sentinel-2) program provides global imagery in thirteen spectral bands at 10m-60m resolution and a revisit time of approximately five days.  This dataset represents the global Sentinel-2 archive, from 2016 to the present, processed to L2A (bottom-of-atmosphere) using [Sen2Cor](https://step.esa.int/main/snap-supported-plugins/sen2cor/) and converted to [cloud-optimized GeoTIFF](https://www.cogeo.org/) format.",
+          "keywords": [
+            "Sentinel",
+            "Copernicus",
+            "ESA",
+            "Satellite",
+            "Global",
+            "Imagery",
+            "Reflectance"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Other Datasets",
+      "count": 20,
+      "collections": [
+        {
+          "id": "alos-fnf-mosaic",
+          "title": "Alos Fnf Mosaic",
+          "description": "Advanced Land Observing Satellite (ALOS) digital elevation model providing 30m resolution global terrain data.",
+          "keywords": []
+        },
+        {
+          "id": "chesapeake-lc-13",
+          "title": "Chesapeake Land Cover (13-class)",
+          "description": "A high-resolution 1-meter [land cover data product](https://www.chesapeakeconservancy.org/conservation-innovation-center/high-resolution-data/land-cover-data-project/) in raster format for the entire Chesapeake Bay watershed based on 2013-2014 imagery from the National Agriculture Imagery Program (NAIP). The product area encompasses over 250,000 square kilometers in New York, Pennsylvania, Maryland, Delaware, West Virginia, Virginia, and the District of Columbia. The dataset was created by th...",
+          "keywords": [
+            "Land Cover",
+            "Chesapeake Bay Watershed",
+            "Chesapeake Conservancy"
+          ]
+        },
+        {
+          "id": "chesapeake-lc-7",
+          "title": "Chesapeake Land Cover (7-class)",
+          "description": "A high-resolution 1-meter [land cover data product](https://www.chesapeakeconservancy.org/conservation-innovation-center/high-resolution-data/land-cover-data-project/) in raster format for the entire Chesapeake Bay watershed based on 2013-2014 imagery from the National Agriculture Imagery Program (NAIP). The product area encompasses over 250,000 square kilometers in New York, Pennsylvania, Maryland, Delaware, West Virginia, Virginia, and the District of Columbia. The dataset was created by th...",
+          "keywords": [
+            "Land Cover",
+            "Chesapeake Bay Watershed",
+            "Chesapeake Conservancy"
+          ]
+        },
+        {
+          "id": "chesapeake-lu",
+          "title": "Chesapeake Land Use",
+          "description": "A high-resolution 1-meter [land use data product](https://www.chesapeakeconservancy.org/conservation-innovation-center/high-resolution-data/land-use-data-project/) in raster format for the entire Chesapeake Bay watershed. The dataset was created by modifying the 2013-2014 high-resolution [land cover dataset](https://www.chesapeakeconservancy.org/conservation-innovation-center/high-resolution-data/land-cover-data-project/) using 13 ancillary datasets including data on zoning, land use, parcel ...",
+          "keywords": [
+            "Land Use",
+            "Chesapeake Bay Watershed",
+            "Chesapeake Conservancy"
+          ]
+        },
+        {
+          "id": "chloris-biomass",
+          "title": "Chloris Biomass",
+          "description": "Chloris Biomass geospatial dataset from Microsoft Planetary Computer.",
+          "keywords": []
+        },
+        {
+          "id": "esa-cci-lc",
+          "title": "Esa Cci Lc",
+          "description": "Esa Cci Lc geospatial dataset from Microsoft Planetary Computer.",
+          "keywords": []
+        },
+        {
+          "id": "hgb",
+          "title": "Hgb",
+          "description": "Hgb geospatial dataset from Microsoft Planetary Computer.",
+          "keywords": []
+        },
+        {
+          "id": "hrea",
+          "title": "Hrea",
+          "description": "Hrea geospatial dataset from Microsoft Planetary Computer.",
+          "keywords": []
+        },
+        {
+          "id": "io-biodiversity",
+          "title": "Biodiversity Intactness",
+          "description": "Generated by [Impact Observatory](https://www.impactobservatory.com/), in collaboration with [Vizzuality](https://www.vizzuality.com/), these datasets estimate terrestrial Biodiversity Intactness as 100-meter gridded maps for the years 2017-2020. Maps depicting the intactness of global biodiversity have become a critical tool for spatial planning and management, monitoring the extent of biodiversity across Earth, and identifying critical remaining intact habitat. Yet, these maps are often yea...",
+          "keywords": [
+            "Global",
+            "Biodiversity"
+          ]
+        },
+        {
+          "id": "jrc-gsw",
+          "title": "Jrc Gsw",
+          "description": "Jrc Gsw geospatial dataset from Microsoft Planetary Computer.",
+          "keywords": []
+        },
+        {
+          "id": "mobi",
+          "title": "Mobi",
+          "description": "Mobi geospatial dataset from Microsoft Planetary Computer.",
+          "keywords": []
+        },
+        {
+          "id": "ms-buildings",
+          "title": "Microsoft Building Footprints",
+          "description": "Bing Maps is releasing open building footprints around the world. We have detected over 999 million buildings from Bing Maps imagery between 2014 and 2021 including Maxar and Airbus imagery. The data is freely available for download and use under ODbL. This dataset complements our other releases. For more information, see the [GlobalMLBuildingFootprints](https://github.com/microsoft/GlobalMLBuildingFootprints/) repository on GitHub. ## Building footprint creation The building extraction is do...",
+          "keywords": [
+            "Bing Maps",
+            "Buildings",
+            "geoparquet",
+            "Microsoft",
+            "Footprint",
+            "Delta"
+          ]
+        },
+        {
+          "id": "mtbs",
+          "title": "Mtbs",
+          "description": "Monitoring Trends in Burn Severity (MTBS) dataset mapping fire extent and severity across the United States.",
+          "keywords": []
+        },
+        {
+          "id": "noaa-c-cap",
+          "title": "Noaa C Cap",
+          "description": "Noaa C Cap geospatial dataset from Microsoft Planetary Computer.",
+          "keywords": []
+        },
+        {
+          "id": "noaa-mrms-qpe-1h-pass1",
+          "title": "NOAA MRMS QPE 1-Hour Pass 1",
+          "description": "The [Multi-Radar Multi-Sensor (MRMS) Quantitative Precipitation Estimation (QPE)](https://www.nssl.noaa.gov/projects/mrms/) products are seamless 1-km mosaics of precipitation accumulation covering the continental United States, Alaska, Hawaii, the Caribbean, and Guam. The products are automatically generated through integration of data from multiple radars and radar networks, surface and satellite observations, numerical weather prediction (NWP) models, and climatology. The products are upda...",
+          "keywords": [
+            "NOAA",
+            "MRMS",
+            "QPE",
+            "Precipitation",
+            "Weather",
+            "United States",
+            "Guam",
+            "Caribbean"
+          ]
+        },
+        {
+          "id": "noaa-mrms-qpe-1h-pass2",
+          "title": "NOAA MRMS QPE 1-Hour Pass 2",
+          "description": "The [Multi-Radar Multi-Sensor (MRMS) Quantitative Precipitation Estimation (QPE)](https://www.nssl.noaa.gov/projects/mrms/) products are seamless 1-km mosaics of precipitation accumulation covering the continental United States, Alaska, Hawaii, the Caribbean, and Guam. The products are automatically generated through integration of data from multiple radars and radar networks, surface and satellite observations, numerical weather prediction (NWP) models, and climatology. The products are upda...",
+          "keywords": [
+            "NOAA",
+            "MRMS",
+            "QPE",
+            "Precipitation",
+            "Weather",
+            "United States",
+            "Guam",
+            "Caribbean"
+          ]
+        },
+        {
+          "id": "noaa-mrms-qpe-24h-pass2",
+          "title": "NOAA MRMS QPE 24-Hour Pass 2",
+          "description": "The [Multi-Radar Multi-Sensor (MRMS) Quantitative Precipitation Estimation (QPE)](https://www.nssl.noaa.gov/projects/mrms/) products are seamless 1-km mosaics of precipitation accumulation covering the continental United States, Alaska, Hawaii, the Caribbean, and Guam. The products are automatically generated through integration of data from multiple radars and radar networks, surface and satellite observations, numerical weather prediction (NWP) models, and climatology. The products are upda...",
+          "keywords": [
+            "NOAA",
+            "MRMS",
+            "QPE",
+            "Precipitation",
+            "Weather",
+            "United States",
+            "Guam",
+            "Caribbean"
+          ]
+        },
+        {
+          "id": "usgs-gap",
+          "title": "Usgs Gap",
+          "description": "USGS Gap Analysis Project providing land cover and species habitat models for conservation planning.",
+          "keywords": []
+        },
+        {
+          "id": "usgs-lcmap-conus-v13",
+          "title": "USGS LCMAP CONUS Collection 1.3",
+          "description": "The [Land Change Monitoring, Assessment, and Projection](https://www.usgs.gov/special-topics/lcmap) (LCMAP) product provides land cover mapping and change monitoring from the U.S. Geological Survey's [Earth Resources Observation and Science](https://www.usgs.gov/centers/eros) (EROS) Center. LCMAP's Science Products are developed by applying time-series modeling on a per-pixel basis to [Landsat Analysis Ready Data](https://www.usgs.gov/landsat-missions/landsat-us-analysis-ready-data) (ARD) usi...",
+          "keywords": [
+            "USGS",
+            "LCMAP",
+            "Land Cover",
+            "Land Cover Change",
+            "CONUS"
+          ]
+        },
+        {
+          "id": "usgs-lcmap-hawaii-v10",
+          "title": "USGS LCMAP Hawaii Collection 1.0",
+          "description": "The [Land Change Monitoring, Assessment, and Projection](https://www.usgs.gov/special-topics/lcmap) (LCMAP) product provides land cover mapping and change monitoring from the U.S. Geological Survey's [Earth Resources Observation and Science](https://www.usgs.gov/centers/eros) (EROS) Center. LCMAP's Science Products are developed by applying time-series modeling on a per-pixel basis to [Landsat Analysis Ready Data](https://www.usgs.gov/landsat-missions/landsat-us-analysis-ready-data) (ARD) usi...",
+          "keywords": [
+            "USGS",
+            "LCMAP",
+            "Land Cover",
+            "Land Cover Change",
+            "Hawaii"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Snow & Ice Cover",
+      "count": 2,
+      "collections": [
+        {
+          "id": "modis-10A1-061",
+          "title": "MODIS Snow Cover Daily",
+          "description": "This global Level-3 (L3) data set provides a daily composite of snow cover and albedo derived from the 'MODIS Snow Cover 5-Min L2 Swath 500m' data set. Each data granule is a 10degx10deg tile projected to a 500 m sinusoidal grid.",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Snow",
+            "MOD10A1",
+            "MYD10A1"
+          ]
+        },
+        {
+          "id": "modis-10A2-061",
+          "title": "MODIS Snow Cover 8-day",
+          "description": "This global Level-3 (L3) data set provides the maximum snow cover extent observed over an eight-day period within 10degx10deg MODIS sinusoidal grid tiles. Tiles are generated by compositing 500 m observations from the 'MODIS Snow Cover Daily L3 Global 500m Grid' data set. A bit flag index is used to track the eight-day snow/no-snow chronology for each 500 m cell.",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Snow",
+            "MOD10A2",
+            "MYD10A2"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Synthetic Aperture Radar (SAR)",
+      "count": 3,
+      "collections": [
+        {
+          "id": "alos-palsar-mosaic",
+          "title": "Alos Palsar Mosaic",
+          "description": "Advanced Land Observing Satellite (ALOS) digital elevation model providing 30m resolution global terrain data.",
+          "keywords": []
+        },
+        {
+          "id": "sentinel-1-grd",
+          "title": "Sentinel 1 Level-1 Ground Range Detected (GRD)",
+          "description": "The [Sentinel-1](https://sentinel.esa.int/web/sentinel/missions/sentinel-1) mission is a constellation of two polar-orbiting satellites, operating day and night performing C-band synthetic aperture radar imaging. The Level-1 Ground Range Detected (GRD) products in this Collection consist of focused SAR data that has been detected, multi-looked and projected to ground range using the Earth ellipsoid model WGS84. The ellipsoid projection of the GRD products is corrected using the terrain height...",
+          "keywords": [
+            "ESA",
+            "Copernicus",
+            "Sentinel",
+            "C-Band",
+            "SAR",
+            "GRD"
+          ]
+        },
+        {
+          "id": "sentinel-1-rtc",
+          "title": "Sentinel 1 Radiometrically Terrain Corrected (RTC)",
+          "description": "The [Sentinel-1](https://sentinel.esa.int/web/sentinel/missions/sentinel-1) mission is a constellation of two polar-orbiting satellites, operating day and night performing C-band synthetic aperture radar imaging. The Sentinel-1 Radiometrically Terrain Corrected (RTC) data in this collection is a radiometrically terrain corrected product derived from the [Ground Range Detected (GRD) Level-1](https://planetarycomputer.microsoft.com/dataset/sentinel-1-grd) products produced by the European Space...",
+          "keywords": [
+            "ESA",
+            "Copernicus",
+            "Sentinel",
+            "C-Band",
+            "SAR",
+            "RTC"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Thermal & Temperature",
+      "count": 9,
+      "collections": [
+        {
+          "id": "aster",
+          "title": "ASTER L1T",
+          "description": "The [ASTER](https://terra.nasa.gov/about/terra-instruments/aster) instrument, launched on-board NASA's [Terra](https://terra.nasa.gov/) satellite in 1999, provides multispectral images of the Earth at 15m-90m resolution.  ASTER images provide information about land surface temperature, color, elevation, and mineral composition.\\n\\nThis dataset represents ASTER [L1T](https://lpdaac.usgs.gov/products/ast_l1tv003/) data from 2000-2006.  L1T images have been terrain-corrected and rotated to a nor...",
+          "keywords": [
+            "ASTER",
+            "USGS",
+            "NASA",
+            "Satellite",
+            "Global"
+          ]
+        },
+        {
+          "id": "landsat-c2-l1",
+          "title": "Landsat Collection 2 Level-1",
+          "description": "Landsat Collection 2 Level-1 data, consisting of quantized and calibrated scaled Digital Numbers (DN) representing the multispectral image data. These [Level-1](https://www.usgs.gov/landsat-missions/landsat-collection-2-level-1-data) data can be [rescaled](https://www.usgs.gov/landsat-missions/using-usgs-landsat-level-1-data-product) to top of atmosphere (TOA) reflectance and/or radiance. Thermal band data can be rescaled to TOA brightness temperature. This dataset represents the global archi...",
+          "keywords": [
+            "Landsat",
+            "USGS",
+            "NASA",
+            "Satellite",
+            "Global",
+            "Imagery"
+          ]
+        },
+        {
+          "id": "landsat-c2-l2",
+          "title": "Landsat Collection 2 Level-2",
+          "description": "Landsat Collection 2 Level-2 [Science Products](https://www.usgs.gov/landsat-missions/landsat-collection-2-level-2-science-products), consisting of atmospherically corrected [surface reflectance](https://www.usgs.gov/landsat-missions/landsat-collection-2-surface-reflectance) and [surface temperature](https://www.usgs.gov/landsat-missions/landsat-collection-2-surface-temperature) image data. Collection 2 Level-2 Science Products are available from August 22, 1982 to present. This dataset repre...",
+          "keywords": [
+            "Landsat",
+            "USGS",
+            "NASA",
+            "Satellite",
+            "Global",
+            "Imagery",
+            "Reflectance",
+            "Temperature"
+          ]
+        },
+        {
+          "id": "modis-11A1-061",
+          "title": "MODIS Land Surface Temperature/Emissivity Daily",
+          "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Land Surface Temperature/Emissivity Daily Version 6.1 product provides daily per-pixel Land Surface Temperature and Emissivity (LST&E) with 1 kilometer (km) spatial resolution in a 1,200 by 1,200 km grid. The pixel temperature value is derived from the MOD11_L2 swath product. Above 30 degrees latitude, some pixels may have multiple observations where the criteria for clear-sky are met. When this occurs, the pixel value is a result of t...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Temperature",
+            "MOD11A1",
+            "MYD11A1"
+          ]
+        },
+        {
+          "id": "modis-11A2-061",
+          "title": "MODIS Land Surface Temperature/Emissivity 8-Day",
+          "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Land Surface Temperature/Emissivity 8-Day Version 6.1 product provides an average 8-day per-pixel Land Surface Temperature and Emissivity (LST&E) with a 1 kilometer (km) spatial resolution in a 1,200 by 1,200 km grid. Each pixel value in the MOD11A2 is a simple average of all the corresponding MOD11A1 LST pixels collected within that 8-day period. The 8-day compositing period was chosen because twice that period is the exact ground tra...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Temperature",
+            "MOD11A2",
+            "MYD11A2"
+          ]
+        },
+        {
+          "id": "modis-21A2-061",
+          "title": "MODIS Land Surface Temperature/3-Band Emissivity 8-Day",
+          "description": "A suite of Moderate Resolution Imaging Spectroradiometer (MODIS) Land Surface Temperature and Emissivity (LST&E) products are available in Collection 6.1. The MOD21 Land Surface Temperatuer (LST) algorithm differs from the algorithm of the MOD11 LST products, in that the MOD21 algorithm is based on the ASTER Temperature/Emissivity Separation (TES) technique, whereas the MOD11 uses the split-window technique. The MOD21 TES algorithm uses a physics-based algorithm to dynamically retrieve both t...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Temperature",
+            "MOD21A2",
+            "MYD21A2"
+          ]
+        },
+        {
+          "id": "noaa-climate-normals-gridded",
+          "title": "NOAA US Gridded Climate Normals (Cloud-Optimized GeoTIFF)",
+          "description": "The [NOAA Gridded United States Climate Normals](https://www.ncei.noaa.gov/products/land-based-station/us-climate-normals#tab-1027) provide a continuous grid of temperature and precipitation data across the contiguous United States (CONUS). The grids are derived from NOAA's [NClimGrid dataset](https://planetarycomputer.microsoft.com/dataset/group/noaa-nclimgrid), and resolutions (nominal 5x5 kilometer) and spatial extents (CONUS) therefore match that of NClimGrid. Monthly, seasonal, and annua...",
+          "keywords": [
+            "NOAA",
+            "Climate Normals",
+            "Weather",
+            "Surface Observations",
+            "Climatology",
+            "CONUS"
+          ]
+        },
+        {
+          "id": "noaa-nclimgrid-monthly",
+          "title": "Monthly NOAA U.S. Climate Gridded Dataset (NClimGrid)",
+          "description": "The [NOAA U.S. Climate Gridded Dataset (NClimGrid)](https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.ncdc:C00332) consists of four climate variables derived from the [Global Historical Climatology Network daily (GHCNd)](https://www.ncei.noaa.gov/products/land-based-station/global-historical-climatology-network-daily) dataset: maximum temperature, minimum temperature, average temperature, and precipitation. The data is provided in 1/24 degree lat/lon (nominal 5x5 kilo...",
+          "keywords": [
+            "United States",
+            "NOAA",
+            "NClimGrid",
+            "Climate",
+            "Precipitation",
+            "Temperature"
+          ]
+        },
+        {
+          "id": "noaa-cdr-sea-surface-temperature-whoi",
+          "title": "NOAA CDR Sea Surface Temperature (WHOI)",
+          "description": "NOAA Climate Data Record of Sea Surface Temperature produced by Woods Hole Oceanographic Institution. Provides global 0.25° resolution daily sea surface temperature measurements in Kelvin.",
+          "keywords": [
+            "NOAA",
+            "WHOI",
+            "SST",
+            "Sea Surface Temperature",
+            "Ocean",
+            "Climate",
+            "Global"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Vegetation Indices",
+      "count": 8,
+      "collections": [
+        {
+          "id": "modis-13A1-061",
+          "title": "MODIS Vegetation Indices 16-Day (500m)",
+          "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Vegetation Indices 16-Day Version 6.1 product provides Vegetation Index (VI) values at a per pixel basis at 500 meter (m) spatial resolution. There are two primary vegetation layers. The first is the Normalized Difference Vegetation Index (NDVI), which is referred to as the continuity index to the existing National Oceanic and Atmospheric Administration-Advanced Very High Resolution Radiometer (NOAA-AVHRR) derived NDVI. The second vege...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Vegetation",
+            "MOD13A1",
+            "MYD13A1"
+          ]
+        },
+        {
+          "id": "modis-13Q1-061",
+          "title": "MODIS Vegetation Indices 16-Day (250m)",
+          "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Vegetation Indices Version 6.1 data are generated every 16 days at 250 meter (m) spatial resolution as a Level 3 product. The MOD13Q1 product provides two primary vegetation layers. The first is the Normalized Difference Vegetation Index (NDVI) which is referred to as the continuity index to the existing National Oceanic and Atmospheric Administration-Advanced Very High Resolution Radiometer (NOAA-AVHRR) derived NDVI. The second vegeta...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Vegetation",
+            "MOD13Q1",
+            "MYD13Q1"
+          ]
+        },
+        {
+          "id": "modis-15A2H-061",
+          "title": "MODIS Leaf Area Index/FPAR 8-Day",
+          "description": "The Version 6.1 Moderate Resolution Imaging Spectroradiometer (MODIS) Level 4, Combined Fraction of Photosynthetically Active Radiation (FPAR), and Leaf Area Index (LAI) product is an 8-day composite dataset with 500 meter pixel size. The algorithm chooses the best pixel available from within the 8-day period. LAI is defined as the one-sided green leaf area per unit ground area in broadleaf canopies and as one-half the total needle surface area per unit ground area in coniferous canopies. FPA...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Vegetation",
+            "MCD15A2H",
+            "MOD15A2H",
+            "MYD15A2H"
+          ]
+        },
+        {
+          "id": "modis-15A3H-061",
+          "title": "MODIS Leaf Area Index/FPAR 4-Day",
+          "description": "The MCD15A3H Version 6.1 Moderate Resolution Imaging Spectroradiometer (MODIS) Level 4, Combined Fraction of Photosynthetically Active Radiation (FPAR), and Leaf Area Index (LAI) product is a 4-day composite data set with 500 meter pixel size. The algorithm chooses the best pixel available from all the acquisitions of both MODIS sensors located on NASA's Terra and Aqua satellites from within the 4-day period. LAI is defined as the one-sided green leaf area per unit ground area in broadleaf ca...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Vegetation",
+            "MCD15A3H"
+          ]
+        },
+        {
+          "id": "modis-16A3GF-061",
+          "title": "MODIS Net Evapotranspiration Yearly Gap-Filled",
+          "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) MOD16A3GF Version 6.1 Evapotranspiration/Latent Heat Flux (ET/LE) product is a year-end gap-filled yearly composite dataset produced at 500 meter (m) pixel resolution. The algorithm used for the MOD16 data product collection is based on the logic of the Penman-Monteith equation, which includes inputs of daily meteorological reanalysis data along with MODIS remotely sensed data products such as vegetation property dynamics, albedo, and ...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Global",
+            "Vegetation",
+            "MOD16A3GF",
+            "MYD16A3GF"
+          ]
+        },
+        {
+          "id": "modis-17A2H-061",
+          "title": "MODIS Gross Primary Productivity 8-Day",
+          "description": "The Version 6.1 Gross Primary Productivity (GPP) product is a cumulative 8-day composite of values with 500 meter (m) pixel size based on the radiation use efficiency concept that can be potentially used as inputs to data models to calculate terrestrial energy, carbon, water cycle processes, and biogeochemistry of vegetation. The Moderate Resolution Imaging Spectroradiometer (MODIS) data product includes information about GPP and Net Photosynthesis (PSN). The PSN band values are the GPP less ...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Vegetation",
+            "Global",
+            "MOD17A2H",
+            "MYD17A2H"
+          ]
+        },
+        {
+          "id": "modis-17A2HGF-061",
+          "title": "MODIS Gross Primary Productivity 8-Day Gap-Filled",
+          "description": "The Version 6.1 Gross Primary Productivity (GPP) product is a cumulative 8-day composite of values with 500 meter (m) pixel size based on the radiation use efficiency concept that can be potentially used as inputs to data models to calculate terrestrial energy, carbon, water cycle processes, and biogeochemistry of vegetation. The Moderate Resolution Imaging Spectroradiometer (MODIS) data product includes information about GPP and Net Photosynthesis (PSN). The PSN band values are the GPP less ...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Vegetation",
+            "Global",
+            "MOD17A2HGF",
+            "MYD17A2HGF"
+          ]
+        },
+        {
+          "id": "modis-17A3HGF-061",
+          "title": "MODIS Net Primary Production Yearly Gap-Filled",
+          "description": "The Version 6.1 product provides information about annual Net Primary Production (NPP) at 500 meter (m) pixel resolution. Annual Moderate Resolution Imaging Spectroradiometer (MODIS) NPP is derived from the sum of all 8-day Net Photosynthesis (PSN) products (MOD17A2H) from the given year. The PSN value is the difference of the Gross Primary Productivity (GPP) and the Maintenance Respiration (MR). The product will be generated at the end of each year when the entire yearly 8-day 15A2H is avail...",
+          "keywords": [
+            "NASA",
+            "MODIS",
+            "Satellite",
+            "Vegetation",
+            "Global",
+            "MOD17A3HGF",
+            "MYD17A3HGF"
+          ]
+        }
+      ]
+    }
+  ],
+  "collections": {
+    "alos-dem": {
+      "collection_id": "alos-dem",
+      "source_folder": "alos-dem",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 8,
+        "max_zoom": 18,
+        "colormap_name": "terrain",
+        "rescale": [
+          -1000.0,
+          4000.0
+        ]
+      },
+      "metadata": {
+        "title": "Alos Dem",
+        "description": "Advanced Land Observing Satellite (ALOS) digital elevation model providing 30m resolution global terrain data."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": true,
+        "supports_temporal": false,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "alos-fnf-mosaic": {
+      "collection_id": "alos-fnf-mosaic",
+      "source_folder": "alos-fnf-mosaic",
+      "rendering": {
+        "assets": [
+          "C"
+        ],
+        "min_zoom": 7,
+        "max_zoom": 18,
+        "colormap_name": "alos-fnf"
+      },
+      "metadata": {
+        "title": "Alos Fnf Mosaic",
+        "description": "Advanced Land Observing Satellite (ALOS) digital elevation model providing 30m resolution global terrain data."
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "alos-palsar-mosaic": {
+      "collection_id": "alos-palsar-mosaic",
+      "source_folder": "alos-palsar-mosaic",
+      "rendering": {
+        "assets": null,
+        "min_zoom": 8,
+        "max_zoom": 18,
+        "rescale": [
+          0.0,
+          9000.0
+        ],
+        "expression": "HH;HV;HH/HV"
+      },
+      "metadata": {
+        "title": "Alos Palsar Mosaic",
+        "description": "Advanced Land Observing Satellite (ALOS) digital elevation model providing 30m resolution global terrain data."
+      },
+      "classification": {
+        "data_type": "sar",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Synthetic Aperture Radar (SAR)"
+    },
+    "aster": {
+      "collection_id": "aster",
+      "source_folder": "aster",
+      "rendering": {
+        "assets": [
+          "aws0_100"
+        ],
+        "min_zoom": 4,
+        "max_zoom": 18,
+        "colormap_name": "cividis",
+        "rescale": [
+          0.0,
+          600.0
+        ]
+      },
+      "metadata": {
+        "description": "The [ASTER](https://terra.nasa.gov/about/terra-instruments/aster) instrument, launched on-board NASA's [Terra](https://terra.nasa.gov/) satellite in 1999, provides multispectral images of the Earth at 15m-90m resolution.  ASTER images provide information about land surface temperature, color, elevation, and mineral composition.\\n\\nThis dataset represents ASTER [L1T](https://lpdaac.usgs.gov/products/ast_l1tv003/) data from 2000-2006.  L1T images have been terrain-corrected and rotated to a nor...",
+        "keywords": [
+          "ASTER",
+          "USGS",
+          "NASA",
+          "Satellite",
+          "Global"
+        ],
+        "title": "ASTER L1T"
+      },
+      "classification": {
+        "data_type": "thermal",
+        "is_static": true,
+        "supports_temporal": false,
+        "supports_cloud_filter": false
+      },
+      "category": "Thermal & Temperature"
+    },
+    "chesapeake-lc-13": {
+      "collection_id": "chesapeake-lc-13",
+      "source_folder": "chesapeake-lc-13",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 12,
+        "max_zoom": 16,
+        "colormap_name": "chesapeake-lc-13"
+      },
+      "metadata": {
+        "description": "A high-resolution 1-meter [land cover data product](https://www.chesapeakeconservancy.org/conservation-innovation-center/high-resolution-data/land-cover-data-project/) in raster format for the entire Chesapeake Bay watershed based on 2013-2014 imagery from the National Agriculture Imagery Program (NAIP). The product area encompasses over 250,000 square kilometers in New York, Pennsylvania, Maryland, Delaware, West Virginia, Virginia, and the District of Columbia. The dataset was created by th...",
+        "keywords": [
+          "Land Cover",
+          "Chesapeake Bay Watershed",
+          "Chesapeake Conservancy"
+        ],
+        "title": "Chesapeake Land Cover (13-class)"
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "chesapeake-lc-7": {
+      "collection_id": "chesapeake-lc-7",
+      "source_folder": "chesapeake-lc-7",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 12,
+        "max_zoom": 16,
+        "colormap_name": "chesapeake-lc-7"
+      },
+      "metadata": {
+        "description": "A high-resolution 1-meter [land cover data product](https://www.chesapeakeconservancy.org/conservation-innovation-center/high-resolution-data/land-cover-data-project/) in raster format for the entire Chesapeake Bay watershed based on 2013-2014 imagery from the National Agriculture Imagery Program (NAIP). The product area encompasses over 250,000 square kilometers in New York, Pennsylvania, Maryland, Delaware, West Virginia, Virginia, and the District of Columbia. The dataset was created by th...",
+        "keywords": [
+          "Land Cover",
+          "Chesapeake Bay Watershed",
+          "Chesapeake Conservancy"
+        ],
+        "title": "Chesapeake Land Cover (7-class)"
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "chesapeake-lu": {
+      "collection_id": "chesapeake-lu",
+      "source_folder": "chesapeake-lu",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 12,
+        "max_zoom": 16,
+        "colormap_name": "chesapeake-lu"
+      },
+      "metadata": {
+        "description": "A high-resolution 1-meter [land use data product](https://www.chesapeakeconservancy.org/conservation-innovation-center/high-resolution-data/land-use-data-project/) in raster format for the entire Chesapeake Bay watershed. The dataset was created by modifying the 2013-2014 high-resolution [land cover dataset](https://www.chesapeakeconservancy.org/conservation-innovation-center/high-resolution-data/land-cover-data-project/) using 13 ancillary datasets including data on zoning, land use, parcel ...",
+        "keywords": [
+          "Land Use",
+          "Chesapeake Bay Watershed",
+          "Chesapeake Conservancy"
+        ],
+        "title": "Chesapeake Land Use"
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "chloris-biomass": {
+      "collection_id": "chloris-biomass",
+      "source_folder": "chloris-biomass",
+      "rendering": {
+        "assets": [
+          "biomass_wm"
+        ],
+        "min_zoom": 2,
+        "max_zoom": 18,
+        "colormap_name": "chloris-biomass",
+        "rescale": [
+          1.0,
+          750000.0
+        ]
+      },
+      "metadata": {
+        "title": "Chloris Biomass - Aboveground Woody Biomass",
+        "description": "Chloris Biomass provides global aboveground woody biomass estimates at 30m resolution. Derived from satellite imagery, this dataset maps forest carbon stocks and vegetation biomass density. Useful for carbon monitoring, forest management, climate studies, and ecosystem assessment. Keywords: biomass, carbon, forest, vegetation, woody biomass, carbon stock, forest carbon, ecosystem carbon."
+      },
+      "classification": {
+        "data_type": "biomass",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "BIOMASS"
+    },
+    "cop-dem-glo-30": {
+      "collection_id": "cop-dem-glo-30",
+      "source_folder": "cop-dem-glo-30",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 8,
+        "max_zoom": 18,
+        "colormap_name": "terrain",
+        "rescale": [
+          -1000.0,
+          4000.0
+        ]
+      },
+      "metadata": {
+        "title": "Cop Dem Glo 30",
+        "description": "Cop Dem Glo 30 digital elevation model providing terrain height information."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": true,
+        "supports_temporal": false,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "cop-dem-glo-90": {
+      "collection_id": "cop-dem-glo-90",
+      "source_folder": "cop-dem-glo-90",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 8,
+        "max_zoom": 18,
+        "colormap_name": "terrain",
+        "rescale": [
+          -1000.0,
+          4000.0
+        ]
+      },
+      "metadata": {
+        "title": "Cop Dem Glo 90",
+        "description": "Cop Dem Glo 90 digital elevation model providing terrain height information."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": true,
+        "supports_temporal": false,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "drcog-lulc": {
+      "collection_id": "drcog-lulc",
+      "source_folder": "drcog-lulc",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 13,
+        "max_zoom": 22,
+        "colormap_name": "drcog-lulc"
+      },
+      "metadata": {
+        "title": "Drcog Lulc",
+        "description": "Drcog Lulc land cover classification dataset."
+      },
+      "classification": {
+        "data_type": "land_cover",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Land Cover & Land Use"
+    },
+    "esa-cci-lc": {
+      "collection_id": "esa-cci-lc",
+      "source_folder": "esa-cci-lc",
+      "rendering": {
+        "assets": [
+          "lccs_class"
+        ],
+        "min_zoom": 3,
+        "max_zoom": 12,
+        "colormap_name": "esa-cci-lc"
+      },
+      "metadata": {
+        "title": "Esa Cci Lc",
+        "description": "Esa Cci Lc geospatial dataset from Microsoft Planetary Computer."
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "esa-worldcover": {
+      "collection_id": "esa-worldcover",
+      "source_folder": "esa-worldcover",
+      "rendering": {
+        "assets": [
+          "map"
+        ],
+        "min_zoom": 6,
+        "max_zoom": 18,
+        "colormap_name": "esa-worldcover"
+      },
+      "metadata": {
+        "description": "The European Space Agency (ESA) [WorldCover](https://esa-worldcover.org/en) product provides global land cover maps for the years 2020 and 2021 at 10 meter resolution based on the combination of [Sentinel-1](https://sentinel.esa.int/web/sentinel/missions/sentinel-1) radar data and [Sentinel-2](https://sentinel.esa.int/web/sentinel/missions/sentinel-2) imagery. The discrete classification maps provide 11 classes defined using the Land Cover Classification System (LCCS) developed by the United ...",
+        "keywords": [
+          "Global",
+          "Land Cover",
+          "Sentinel",
+          "ESA"
+        ],
+        "title": "ESA WorldCover"
+      },
+      "classification": {
+        "data_type": "land_cover",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Land Cover & Land Use"
+    },
+    "hgb": {
+      "collection_id": "hgb",
+      "source_folder": "hgb",
+      "rendering": {
+        "assets": [
+          "aboveground"
+        ],
+        "min_zoom": 2,
+        "max_zoom": 18,
+        "colormap_name": "greens",
+        "rescale": [
+          0.0,
+          255.0
+        ],
+        "nodata": 0
+      },
+      "metadata": {
+        "title": "Hgb",
+        "description": "Hgb geospatial dataset from Microsoft Planetary Computer."
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "hls2-l30": {
+      "collection_id": "hls2-l30",
+      "source_folder": "hls2-l30",
+      "rendering": {
+        "assets": [
+          "B04",
+          "B03",
+          "B02"
+        ],
+        "min_zoom": 8,
+        "max_zoom": 18,
+        "rescale": [0, 3000],
+        "color_formula": "gamma RGB 2.7, saturation 1.5, sigmoidal RGB 15 0.55"
+      },
+      "metadata": {
+        "description": "Harmonized Landsat Sentinel-2 (HLS) Version 2.0 provides consistent surface reflectance (SR) and top of atmosphere (TOA) brightness data from the Operational Land Imager (OLI) aboard the joint NASA/USGS Landsat 8 and Landsat 9 satellites and the Multi-Spectral Instrument (MSI) aboard the ESA (European Space Agency) Sentinel-2A, Sentinel-2B, and Sentinel-2C satellites. The combined measurement enables global observations of the land every 2-3 days at 30 meter (m) spatial resolution. The HLS-S3...",
+        "keywords": [
+          "Sentinel",
+          "Landsat",
+          "HLS",
+          "Satellite",
+          "Global",
+          "Imagery"
+        ],
+        "title": "Harmonized Landsat Sentinel-2 (HLS) Version 2.0, Landsat Data"
+      },
+      "classification": {
+        "data_type": "optical_reflectance",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": true
+      },
+      "category": "Optical Satellite Imagery"
+    },
+    "hls2-s30": {
+      "collection_id": "hls2-s30",
+      "source_folder": "hls2-s30",
+      "rendering": {
+        "assets": [
+          "B04",
+          "B03",
+          "B02"
+        ],
+        "min_zoom": 8,
+        "max_zoom": 18,
+        "rescale": [0, 3000],
+        "color_formula": "gamma RGB 2.7, saturation 1.5, sigmoidal RGB 15 0.55"
+      },
+      "metadata": {
+        "description": "Harmonized Landsat Sentinel-2 (HLS) Version 2.0 provides consistent surface reflectance (SR) and top of atmosphere (TOA) brightness data from the Operational Land Imager (OLI) aboard the joint NASA/USGS Landsat 8 and Landsat 9 satellites and the Multi-Spectral Instrument (MSI) aboard the ESA (European Space Agency) Sentinel-2A, Sentinel-2B, and Sentinel-2C satellites. The combined measurement enables global observations of the land every 2-3 days at 30 meter (m) spatial resolution. The HLS-S3...",
+        "keywords": [
+          "Sentinel",
+          "Landsat",
+          "HLS",
+          "Satellite",
+          "Global",
+          "Imagery"
+        ],
+        "title": "Harmonized Landsat Sentinel-2 (HLS) Version 2.0, Sentinel-2 Data"
+      },
+      "classification": {
+        "data_type": "optical_reflectance",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": true
+      },
+      "category": "Optical Satellite Imagery"
+    },
+    "hrea": {
+      "collection_id": "hrea",
+      "source_folder": "hrea",
+      "rendering": {
+        "assets": [
+          "estimated-brightness"
+        ],
+        "min_zoom": 3,
+        "max_zoom": 18,
+        "colormap_name": "magma",
+        "rescale": [
+          1.0,
+          200.0
+        ]
+      },
+      "metadata": {
+        "title": "Hrea",
+        "description": "Hrea geospatial dataset from Microsoft Planetary Computer."
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "io-biodiversity": {
+      "collection_id": "io-biodiversity",
+      "source_folder": "io-biodiversity",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 2,
+        "max_zoom": 11,
+        "colormap_name": "io-bii",
+        "rescale": [
+          0.0,
+          1.0
+        ],
+        "expression": "0.97*(data_b1**3.84)"
+      },
+      "metadata": {
+        "description": "Generated by [Impact Observatory](https://www.impactobservatory.com/), in collaboration with [Vizzuality](https://www.vizzuality.com/), these datasets estimate terrestrial Biodiversity Intactness as 100-meter gridded maps for the years 2017-2020. Maps depicting the intactness of global biodiversity have become a critical tool for spatial planning and management, monitoring the extent of biodiversity across Earth, and identifying critical remaining intact habitat. Yet, these maps are often yea...",
+        "keywords": [
+          "Global",
+          "Biodiversity"
+        ],
+        "title": "Biodiversity Intactness"
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "io-lulc": {
+      "collection_id": "io-lulc",
+      "source_folder": "io-lulc",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 4,
+        "max_zoom": 18,
+        "colormap_name": "io-lulc"
+      },
+      "metadata": {
+        "description": "__Note__: _A new version of this item is available for your use. This mature version of the map remains available for use in existing applications. This item will be retired in December 2024. There is 2020 data available in the newer [9-class dataset](https://planetarycomputer.microsoft.com/dataset/io-lulc-9-class)._ Global estimates of 10-class land use/land cover (LULC) for 2020, derived from ESA Sentinel-2 imagery at 10m resolution.  This dataset was generated by [Impact Observatory](http:...",
+        "keywords": [
+          "Global",
+          "Land Cover",
+          "Land Use",
+          "Sentinel"
+        ],
+        "title": "Esri 10-Meter Land Cover (10-class)"
+      },
+      "classification": {
+        "data_type": "land_cover",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Land Cover & Land Use"
+    },
+    "io-lulc-9-class": {
+      "collection_id": "io-lulc-9-class",
+      "source_folder": "io-lulc-9-class",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 4,
+        "max_zoom": 18,
+        "colormap_name": "io-lulc-9-class"
+      },
+      "metadata": {
+        "description": "__Note__: _A new version of this item is available for your use. This mature version of the map remains available for use in existing applications. This item will be retired in December 2024. There is 2023 data available in the newer [9-class v2 dataset](https://planetarycomputer.microsoft.com/dataset/io-lulc-annual-v02)._ Time series of annual global maps of land use and land cover (LULC). It currently has data from 2017-2022. The maps are derived from ESA Sentinel-2 imagery at 10m resolutio...",
+        "keywords": [
+          "Global",
+          "Land Cover",
+          "Land Use",
+          "Sentinel"
+        ],
+        "title": "10m Annual Land Use Land Cover (9-class) V1"
+      },
+      "classification": {
+        "data_type": "land_cover",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Land Cover & Land Use"
+    },
+    "io-lulc-annual-v02": {
+      "collection_id": "io-lulc-annual-v02",
+      "source_folder": "io-lulc-annual-v02",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 4,
+        "max_zoom": 18,
+        "colormap_name": "io-lulc-9-class"
+      },
+      "metadata": {
+        "description": "Time series of annual global maps of land use and land cover (LULC). It currently has data from 2017-2023. The maps are derived from ESA Sentinel-2 imagery at 10m resolution. Each map is a composite of LULC predictions for 9 classes throughout the year in order to generate a representative snapshot of each year. This dataset, produced by [Impact Observatory](http://impactobservatory.com/), Microsoft, and Esri, displays a global map of land use and land cover (LULC) derived from ESA Sentinel-2...",
+        "keywords": [
+          "Global",
+          "Land Cover",
+          "Land Use",
+          "Sentinel"
+        ],
+        "title": "10m Annual Land Use Land Cover (9-class) V2"
+      },
+      "classification": {
+        "data_type": "land_cover",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Land Cover & Land Use"
+    },
+    "jrc-gsw": {
+      "collection_id": "jrc-gsw",
+      "source_folder": "jrc-gsw",
+      "rendering": {
+        "assets": [
+          "occurrence"
+        ],
+        "min_zoom": 4,
+        "max_zoom": 18,
+        "colormap_name": "jrc-occurrence",
+        "nodata": 0
+      },
+      "metadata": {
+        "title": "Jrc Gsw",
+        "description": "Jrc Gsw geospatial dataset from Microsoft Planetary Computer."
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "landsat-c2-l1": {
+      "collection_id": "landsat-c2-l1",
+      "source_folder": "landsat-c2-l1",
+      "rendering": {
+        "assets": [
+          "nir08",
+          "red",
+          "green"
+        ],
+        "min_zoom": 8,
+        "max_zoom": 13,
+        "color_formula": "gamma RGB 2.6, saturation 1.0, sigmoidal RGB 14 0.5"
+      },
+      "metadata": {
+        "description": "Landsat Collection 2 Level-1 data, consisting of quantized and calibrated scaled Digital Numbers (DN) representing the multispectral image data. These [Level-1](https://www.usgs.gov/landsat-missions/landsat-collection-2-level-1-data) data can be [rescaled](https://www.usgs.gov/landsat-missions/using-usgs-landsat-level-1-data-product) to top of atmosphere (TOA) reflectance and/or radiance. Thermal band data can be rescaled to TOA brightness temperature. This dataset represents the global archi...",
+        "keywords": [
+          "Landsat",
+          "USGS",
+          "NASA",
+          "Satellite",
+          "Global",
+          "Imagery"
+        ],
+        "title": "Landsat Collection 2 Level-1"
+      },
+      "classification": {
+        "data_type": "thermal",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Thermal & Temperature"
+    },
+    "landsat-c2-l2": {
+      "collection_id": "landsat-c2-l2",
+      "source_folder": "landsat-c2-l2",
+      "rendering": {
+        "assets": [
+          "red",
+          "green",
+          "blue"
+        ],
+        "min_zoom": 8,
+        "max_zoom": 18,
+        "rescale": [0, 3000],
+        "color_formula": "gamma RGB 2.7, saturation 1.5, sigmoidal RGB 15 0.55"
+      },
+      "metadata": {
+        "description": "Landsat Collection 2 Level-2 [Science Products](https://www.usgs.gov/landsat-missions/landsat-collection-2-level-2-science-products), consisting of atmospherically corrected [surface reflectance](https://www.usgs.gov/landsat-missions/landsat-collection-2-surface-reflectance) and [surface temperature](https://www.usgs.gov/landsat-missions/landsat-collection-2-surface-temperature) image data. Collection 2 Level-2 Science Products are available from August 22, 1982 to present. This dataset repre...",
+        "keywords": [
+          "Landsat",
+          "USGS",
+          "NASA",
+          "Satellite",
+          "Global",
+          "Imagery",
+          "Reflectance",
+          "Temperature"
+        ],
+        "title": "Landsat Collection 2 Level-2"
+      },
+      "classification": {
+        "data_type": "thermal",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Thermal & Temperature"
+    },
+    "mobi": {
+      "collection_id": "mobi",
+      "source_folder": "mobi",
+      "rendering": {
+        "assets": [
+          "SpeciesRichness_All"
+        ],
+        "min_zoom": 3,
+        "max_zoom": 18,
+        "colormap_name": "magma",
+        "nodata": 128,
+        "rescale": [
+          0.0,
+          14.0
+        ]
+      },
+      "metadata": {
+        "title": "Mobi",
+        "description": "Mobi geospatial dataset from Microsoft Planetary Computer."
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "modis-09A1-061": {
+      "collection_id": "modis-09A1-061",
+      "source_folder": "modis-09A1-061",
+      "rendering": {
+        "assets": [
+          "sur_refl_b01",
+          "sur_refl_b04",
+          "sur_refl_b03"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "color_formula": "gamma RGB 3.0, saturation 1.9, sigmoidal RGB 0 0.55"
+      },
+      "metadata": {
+        "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) 09A1 Version 6.1 product provides an estimate of the surface spectral reflectance of MODIS Bands 1 through 7 corrected for atmospheric conditions such as gasses, aerosols, and Rayleigh scattering. Along with the seven 500 meter (m) reflectance bands are two quality layers and four observation bands. For each pixel, a value is selected from all the acquisitions within the 8-day composite period. The criteria for the pixel choice include...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Imagery",
+          "Global",
+          "Reflectance",
+          "MOD09A1",
+          "MYD09A1"
+        ],
+        "title": "MODIS Surface Reflectance 8-Day (500m)"
+      },
+      "classification": {
+        "data_type": "optical_reflectance",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": true
+      },
+      "category": "Optical Satellite Imagery"
+    },
+    "modis-09Q1-061": {
+      "collection_id": "modis-09Q1-061",
+      "source_folder": "modis-09Q1-061",
+      "rendering": {
+        "assets": [
+          "sur_refl_b02",
+          "sur_refl_b01",
+          "sur_refl_b01"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "color_formula": "gamma RGB 3.0, saturation 1.9, sigmoidal RGB 0 0.55"
+      },
+      "metadata": {
+        "description": "The 09Q1 Version 6.1 product provides an estimate of the surface spectral reflectance of Moderate Resolution Imaging Spectroradiometer (MODIS) Bands 1 and 2, corrected for atmospheric conditions such as gasses, aerosols, and Rayleigh scattering. Provided along with the 250 meter (m) surface reflectance bands are two quality layers. For each pixel, a value is selected from all the acquisitions within the 8-day composite period. The criteria for the pixel choice include cloud and solar zenith. ...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Imagery",
+          "Global",
+          "Reflectance",
+          "MOD09Q1",
+          "MYD09Q1"
+        ],
+        "title": "MODIS Surface Reflectance 8-Day (250m)"
+      },
+      "classification": {
+        "data_type": "optical_reflectance",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": true
+      },
+      "category": "Optical Satellite Imagery"
+    },
+    "modis-10A1-061": {
+      "collection_id": "modis-10A1-061",
+      "source_folder": "modis-10A1-061",
+      "rendering": {
+        "assets": [
+          "NDSI_Snow_Cover"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "modis-10A1"
+      },
+      "metadata": {
+        "description": "This global Level-3 (L3) data set provides a daily composite of snow cover and albedo derived from the 'MODIS Snow Cover 5-Min L2 Swath 500m' data set. Each data granule is a 10degx10deg tile projected to a 500 m sinusoidal grid.",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Snow",
+          "MOD10A1",
+          "MYD10A1"
+        ],
+        "title": "MODIS Snow Cover Daily"
+      },
+      "classification": {
+        "data_type": "snow",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Snow & Ice Cover"
+    },
+    "modis-10A2-061": {
+      "collection_id": "modis-10A2-061",
+      "source_folder": "modis-10A2-061",
+      "rendering": {
+        "assets": [
+          "Maximum_Snow_Extent"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "modis-10A2"
+      },
+      "metadata": {
+        "description": "This global Level-3 (L3) data set provides the maximum snow cover extent observed over an eight-day period within 10degx10deg MODIS sinusoidal grid tiles. Tiles are generated by compositing 500 m observations from the 'MODIS Snow Cover Daily L3 Global 500m Grid' data set. A bit flag index is used to track the eight-day snow/no-snow chronology for each 500 m cell.",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Snow",
+          "MOD10A2",
+          "MYD10A2"
+        ],
+        "title": "MODIS Snow Cover 8-day"
+      },
+      "classification": {
+        "data_type": "snow",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Snow & Ice Cover"
+    },
+    "modis-11A1-061": {
+      "collection_id": "modis-11A1-061",
+      "source_folder": "modis-11A1-061",
+      "rendering": {
+        "assets": [
+          "LST_Day_1km"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "jet",
+        "rescale": [
+          255.0,
+          310.0
+        ]
+      },
+      "metadata": {
+        "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Land Surface Temperature/Emissivity Daily Version 6.1 product provides daily per-pixel Land Surface Temperature and Emissivity (LST&E) with 1 kilometer (km) spatial resolution in a 1,200 by 1,200 km grid. The pixel temperature value is derived from the MOD11_L2 swath product. Above 30 degrees latitude, some pixels may have multiple observations where the criteria for clear-sky are met. When this occurs, the pixel value is a result of t...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Temperature",
+          "MOD11A1",
+          "MYD11A1"
+        ],
+        "title": "MODIS Land Surface Temperature/Emissivity Daily"
+      },
+      "classification": {
+        "data_type": "thermal",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Thermal & Temperature"
+    },
+    "modis-11A2-061": {
+      "collection_id": "modis-11A2-061",
+      "source_folder": "modis-11A2-061",
+      "rendering": {
+        "assets": [
+          "LST_Day_1km"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "jet",
+        "rescale": [
+          255.0,
+          310.0
+        ]
+      },
+      "metadata": {
+        "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Land Surface Temperature/Emissivity 8-Day Version 6.1 product provides an average 8-day per-pixel Land Surface Temperature and Emissivity (LST&E) with a 1 kilometer (km) spatial resolution in a 1,200 by 1,200 km grid. Each pixel value in the MOD11A2 is a simple average of all the corresponding MOD11A1 LST pixels collected within that 8-day period. The 8-day compositing period was chosen because twice that period is the exact ground tra...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Temperature",
+          "MOD11A2",
+          "MYD11A2"
+        ],
+        "title": "MODIS Land Surface Temperature/Emissivity 8-Day"
+      },
+      "classification": {
+        "data_type": "thermal",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Thermal & Temperature"
+    },
+    "modis-13A1-061": {
+      "collection_id": "modis-13A1-061",
+      "source_folder": "modis-13A1-061",
+      "rendering": {
+        "assets": [
+          "500m_16_days_NDVI"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "viridis",
+        "rescale": [-2000, 10000]
+      },
+      "metadata": {
+        "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Vegetation Indices 16-Day Version 6.1 product provides Vegetation Index (VI) values at a per pixel basis at 500 meter (m) spatial resolution. There are two primary vegetation layers. The first is the Normalized Difference Vegetation Index (NDVI), which is referred to as the continuity index to the existing National Oceanic and Atmospheric Administration-Advanced Very High Resolution Radiometer (NOAA-AVHRR) derived NDVI. The second vege...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Vegetation",
+          "MOD13A1",
+          "MYD13A1"
+        ],
+        "title": "MODIS Vegetation Indices 16-Day (500m)"
+      },
+      "classification": {
+        "data_type": "vegetation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Vegetation Indices"
+    },
+    "modis-13Q1-061": {
+      "collection_id": "modis-13Q1-061",
+      "source_folder": "modis-13Q1-061",
+      "rendering": {
+        "assets": [
+          "250m_16_days_NDVI"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "viridis",
+        "rescale": [-2000, 10000]
+      },
+      "metadata": {
+        "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Vegetation Indices Version 6.1 data are generated every 16 days at 250 meter (m) spatial resolution as a Level 3 product. The MOD13Q1 product provides two primary vegetation layers. The first is the Normalized Difference Vegetation Index (NDVI) which is referred to as the continuity index to the existing National Oceanic and Atmospheric Administration-Advanced Very High Resolution Radiometer (NOAA-AVHRR) derived NDVI. The second vegeta...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Vegetation",
+          "MOD13Q1",
+          "MYD13Q1"
+        ],
+        "title": "MODIS Vegetation Indices 16-Day (250m)"
+      },
+      "classification": {
+        "data_type": "vegetation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Vegetation Indices"
+    },
+    "modis-14A1-061": {
+      "collection_id": "modis-14A1-061",
+      "source_folder": "modis-14A1-061",
+      "rendering": {
+        "assets": [
+          "MaxFRP"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "hot_r",
+        "rescale": "0,500",
+        "asset_bidx": "MaxFRP|1"
+      },
+      "metadata": {
+        "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Thermal Anomalies and Fire Daily Version 6.1 data are generated every eight days at 1 kilometer (km) spatial resolution as a Level 3 product. MOD14A1 contains eight consecutive days of fire data conveniently packaged into a single file. The Science Dataset (SDS) layers include the fire mask, pixel quality indicators, maximum fire radiative power (MaxFRP), and the position of the fire pixel within the scan. Each layer consists of daily ...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Fire",
+          "MOD14A1",
+          "MYD14A1"
+        ],
+        "title": "MODIS Thermal Anomalies/Fire Daily"
+      },
+      "classification": {
+        "data_type": "fire",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Fire Detection & Analysis"
+    },
+    "modis-14A2-061": {
+      "collection_id": "modis-14A2-061",
+      "source_folder": "modis-14A2-061",
+      "rendering": {
+        "assets": [
+          "FireMask"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "hot_r",
+        "rescale": "5,9",
+        "asset_bidx": "FireMask|1"
+      },
+      "metadata": {
+        "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) Thermal Anomalies and Fire 8-Day Version 6.1 data are generated at 1 kilometer (km) spatial resolution as a Level 3 product. The MOD14A2 gridded composite contains the maximum value of the individual fire pixel classes detected during the eight days of acquisition. The Science Dataset (SDS) layers include the fire mask and pixel quality indicators.",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Fire",
+          "MOD14A2",
+          "MYD14A2"
+        ],
+        "title": "MODIS Thermal Anomalies/Fire 8-Day"
+      },
+      "classification": {
+        "data_type": "fire",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Fire Detection & Analysis"
+    },
+    "modis-15A2H-061": {
+      "collection_id": "modis-15A2H-061",
+      "source_folder": "modis-15A2H-061",
+      "rendering": {
+        "assets": [
+          "Fpar_500m"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "modis-15A2H|A3H"
+      },
+      "metadata": {
+        "description": "The Version 6.1 Moderate Resolution Imaging Spectroradiometer (MODIS) Level 4, Combined Fraction of Photosynthetically Active Radiation (FPAR), and Leaf Area Index (LAI) product is an 8-day composite dataset with 500 meter pixel size. The algorithm chooses the best pixel available from within the 8-day period. LAI is defined as the one-sided green leaf area per unit ground area in broadleaf canopies and as one-half the total needle surface area per unit ground area in coniferous canopies. FPA...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Vegetation",
+          "MCD15A2H",
+          "MOD15A2H",
+          "MYD15A2H"
+        ],
+        "title": "MODIS Leaf Area Index/FPAR 8-Day"
+      },
+      "classification": {
+        "data_type": "vegetation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Vegetation Indices"
+    },
+    "modis-15A3H-061": {
+      "collection_id": "modis-15A3H-061",
+      "source_folder": "modis-15A3H-061",
+      "rendering": {
+        "assets": [
+          "Fpar_500m"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "modis-15A2H|A3H"
+      },
+      "metadata": {
+        "description": "The MCD15A3H Version 6.1 Moderate Resolution Imaging Spectroradiometer (MODIS) Level 4, Combined Fraction of Photosynthetically Active Radiation (FPAR), and Leaf Area Index (LAI) product is a 4-day composite data set with 500 meter pixel size. The algorithm chooses the best pixel available from all the acquisitions of both MODIS sensors located on NASA's Terra and Aqua satellites from within the 4-day period. LAI is defined as the one-sided green leaf area per unit ground area in broadleaf ca...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Vegetation",
+          "MCD15A3H"
+        ],
+        "title": "MODIS Leaf Area Index/FPAR 4-Day"
+      },
+      "classification": {
+        "data_type": "vegetation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Vegetation Indices"
+    },
+    "modis-16A3GF-061": {
+      "collection_id": "modis-16A3GF-061",
+      "source_folder": "modis-16A3GF-061",
+      "rendering": {
+        "assets": [
+          "ET_500m"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "modis-16A3GF-ET"
+      },
+      "metadata": {
+        "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) MOD16A3GF Version 6.1 Evapotranspiration/Latent Heat Flux (ET/LE) product is a year-end gap-filled yearly composite dataset produced at 500 meter (m) pixel resolution. The algorithm used for the MOD16 data product collection is based on the logic of the Penman-Monteith equation, which includes inputs of daily meteorological reanalysis data along with MODIS remotely sensed data products such as vegetation property dynamics, albedo, and ...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Vegetation",
+          "MOD16A3GF",
+          "MYD16A3GF"
+        ],
+        "title": "MODIS Net Evapotranspiration Yearly Gap-Filled"
+      },
+      "classification": {
+        "data_type": "vegetation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Vegetation Indices"
+    },
+    "modis-17A2H-061": {
+      "collection_id": "modis-17A2H-061",
+      "source_folder": "modis-17A2H-061",
+      "rendering": {
+        "assets": [
+          "Gpp_500m"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "modis-17A2H|A2HGF"
+      },
+      "metadata": {
+        "description": "The Version 6.1 Gross Primary Productivity (GPP) product is a cumulative 8-day composite of values with 500 meter (m) pixel size based on the radiation use efficiency concept that can be potentially used as inputs to data models to calculate terrestrial energy, carbon, water cycle processes, and biogeochemistry of vegetation. The Moderate Resolution Imaging Spectroradiometer (MODIS) data product includes information about GPP and Net Photosynthesis (PSN). The PSN band values are the GPP less ...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Vegetation",
+          "Global",
+          "MOD17A2H",
+          "MYD17A2H"
+        ],
+        "title": "MODIS Gross Primary Productivity 8-Day"
+      },
+      "classification": {
+        "data_type": "vegetation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Vegetation Indices"
+    },
+    "modis-17A2HGF-061": {
+      "collection_id": "modis-17A2HGF-061",
+      "source_folder": "modis-17A2HGF-061",
+      "rendering": {
+        "assets": [
+          "Gpp_500m"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "modis-17A2H|A2HGF"
+      },
+      "metadata": {
+        "description": "The Version 6.1 Gross Primary Productivity (GPP) product is a cumulative 8-day composite of values with 500 meter (m) pixel size based on the radiation use efficiency concept that can be potentially used as inputs to data models to calculate terrestrial energy, carbon, water cycle processes, and biogeochemistry of vegetation. The Moderate Resolution Imaging Spectroradiometer (MODIS) data product includes information about GPP and Net Photosynthesis (PSN). The PSN band values are the GPP less ...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Vegetation",
+          "Global",
+          "MOD17A2HGF",
+          "MYD17A2HGF"
+        ],
+        "title": "MODIS Gross Primary Productivity 8-Day Gap-Filled"
+      },
+      "classification": {
+        "data_type": "vegetation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Vegetation Indices"
+    },
+    "modis-17A3HGF-061": {
+      "collection_id": "modis-17A3HGF-061",
+      "source_folder": "modis-17A3HGF-061",
+      "rendering": {
+        "assets": [
+          "Npp_500m"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "modis-17A3HGF"
+      },
+      "metadata": {
+        "description": "The Version 6.1 product provides information about annual Net Primary Production (NPP) at 500 meter (m) pixel resolution. Annual Moderate Resolution Imaging Spectroradiometer (MODIS) NPP is derived from the sum of all 8-day Net Photosynthesis (PSN) products (MOD17A2H) from the given year. The PSN value is the difference of the Gross Primary Productivity (GPP) and the Maintenance Respiration (MR). The product will be generated at the end of each year when the entire yearly 8-day 15A2H is avail...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Vegetation",
+          "Global",
+          "MOD17A3HGF",
+          "MYD17A3HGF"
+        ],
+        "title": "MODIS Net Primary Production Yearly Gap-Filled"
+      },
+      "classification": {
+        "data_type": "vegetation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Vegetation Indices"
+    },
+    "modis-21A2-061": {
+      "collection_id": "modis-21A2-061",
+      "source_folder": "modis-21A2-061",
+      "rendering": {
+        "assets": [
+          "LST_Day_1KM"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "jet",
+        "rescale": [
+          255.0,
+          310.0
+        ]
+      },
+      "metadata": {
+        "description": "A suite of Moderate Resolution Imaging Spectroradiometer (MODIS) Land Surface Temperature and Emissivity (LST&E) products are available in Collection 6.1. The MOD21 Land Surface Temperatuer (LST) algorithm differs from the algorithm of the MOD11 LST products, in that the MOD21 algorithm is based on the ASTER Temperature/Emissivity Separation (TES) technique, whereas the MOD11 uses the split-window technique. The MOD21 TES algorithm uses a physics-based algorithm to dynamically retrieve both t...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Global",
+          "Temperature",
+          "MOD21A2",
+          "MYD21A2"
+        ],
+        "title": "MODIS Land Surface Temperature/3-Band Emissivity 8-Day"
+      },
+      "classification": {
+        "data_type": "thermal",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Thermal & Temperature"
+    },
+    "modis-43A4-061": {
+      "collection_id": "modis-43A4-061",
+      "source_folder": "modis-43A4-061",
+      "rendering": {
+        "assets": [
+          "Nadir_Reflectance_Band1",
+          "Nadir_Reflectance_Band4",
+          "Nadir_Reflectance_Band3"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "rescale": [
+          0.0,
+          2000.0
+        ]
+      },
+      "metadata": {
+        "description": "The Moderate Resolution Imaging Spectroradiometer (MODIS) MCD43A4 Version 6.1 Nadir Bidirectional Reflectance Distribution Function (BRDF)-Adjusted Reflectance (NBAR) dataset is produced daily using 16 days of Terra and Aqua MODIS data at 500 meter (m) resolution. The view angle effects are removed from the directional reflectances, resulting in a stable and consistent NBAR product. Data are temporally weighted to the ninth day which is reflected in the Julian date in the file name. Users are...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Imagery",
+          "Global",
+          "Reflectance",
+          "MCD43A4"
+        ],
+        "title": "MODIS Nadir BRDF-Adjusted Reflectance (NBAR) Daily"
+      },
+      "classification": {
+        "data_type": "optical_reflectance",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": true
+      },
+      "category": "Optical Satellite Imagery"
+    },
+    "modis-64A1-061": {
+      "collection_id": "modis-64A1-061",
+      "source_folder": "modis-64A1-061",
+      "rendering": {
+        "assets": [
+          "Burn_Date"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "modis-64A1"
+      },
+      "metadata": {
+        "description": "The Terra and Aqua combined MCD64A1 Version 6.1 Burned Area data product is a monthly, global gridded 500 meter (m) product containing per-pixel burned-area and quality information. The MCD64A1 burned-area mapping approach employs 500 m Moderate Resolution Imaging Spectroradiometer (MODIS) Surface Reflectance imagery coupled with 1 kilometer (km) MODIS active fire observations. The algorithm uses a burn sensitive Vegetation Index (VI) to create dynamic thresholds that are applied to the compo...",
+        "keywords": [
+          "NASA",
+          "MODIS",
+          "Satellite",
+          "Imagery",
+          "Global",
+          "Fire",
+          "MCD64A1"
+        ],
+        "title": "MODIS Burned Area Monthly"
+      },
+      "classification": {
+        "data_type": "fire",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Fire Detection & Analysis"
+    },
+    "ms-buildings": {
+      "collection_id": "ms-buildings",
+      "source_folder": "ms-buildings",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 0,
+        "max_zoom": 15,
+        "colormap_name": "viridis"
+      },
+      "metadata": {
+        "description": "Bing Maps is releasing open building footprints around the world. We have detected over 999 million buildings from Bing Maps imagery between 2014 and 2021 including Maxar and Airbus imagery. The data is freely available for download and use under ODbL. This dataset complements our other releases. For more information, see the [GlobalMLBuildingFootprints](https://github.com/microsoft/GlobalMLBuildingFootprints/) repository on GitHub. ## Building footprint creation The building extraction is do...",
+        "keywords": [
+          "Bing Maps",
+          "Buildings",
+          "geoparquet",
+          "Microsoft",
+          "Footprint",
+          "Delta"
+        ],
+        "title": "Microsoft Building Footprints"
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "mtbs": {
+      "collection_id": "mtbs",
+      "source_folder": "mtbs",
+      "rendering": {
+        "assets": [
+          "burn-severity"
+        ],
+        "min_zoom": 3,
+        "max_zoom": 18,
+        "colormap_name": "mtbs-severity"
+      },
+      "metadata": {
+        "title": "MTBS - Monitoring Trends in Burn Severity",
+        "description": "MTBS (Monitoring Trends in Burn Severity) provides burn severity assessments for wildfires, prescribed fires, and other large fires across the United States from 1984-present. Includes burn severity classifications, fire perimeters, and extent mapping at 30m resolution. Keywords: wildfire, burn severity, fire mapping, MTBS, fire damage, post-fire analysis, forest fire."
+      },
+      "classification": {
+        "data_type": "fire",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "FIRE"
+    },
+    "naip": {
+      "collection_id": "naip",
+      "source_folder": "naip",
+      "rendering": {
+        "assets": [
+          "image"
+        ],
+        "min_zoom": 11,
+        "max_zoom": 18,
+        "asset_bidx": "image|1,2,3"
+      },
+      "metadata": {
+        "description": "The [National Agriculture Imagery Program](https://www.fsa.usda.gov/programs-and-services/aerial-photography/imagery-programs/naip-imagery/) (NAIP)  provides U.S.-wide, high-resolution aerial imagery, with four spectral bands (R, G, B, IR).  NAIP is administered by the [Aerial Field Photography Office](https://www.fsa.usda.gov/programs-and-services/aerial-photography/) (AFPO)  within the [US Department of Agriculture](https://www.usda.gov/) (USDA).  Data are captured at least once every three...",
+        "keywords": [
+          "NAIP",
+          "Aerial",
+          "Imagery",
+          "USDA",
+          "AFPO",
+          "Agriculture",
+          "United States"
+        ],
+        "title": "NAIP: National Agriculture Imagery Program"
+      },
+      "classification": {
+        "data_type": "optical_reflectance",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": true
+      },
+      "category": "Optical Satellite Imagery"
+    },
+    "nasadem": {
+      "collection_id": "nasadem",
+      "source_folder": "nasadem",
+      "rendering": {
+        "assets": [
+          "elevation"
+        ],
+        "min_zoom": 7,
+        "max_zoom": 18,
+        "colormap_name": "terrain",
+        "rescale": [
+          -100.0,
+          4000.0
+        ]
+      },
+      "metadata": {
+        "title": "Nasadem",
+        "description": "Nasadem digital elevation model providing terrain height information."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": true,
+        "supports_temporal": false,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "noaa-c-cap": {
+      "collection_id": "noaa-c-cap",
+      "source_folder": "noaa-c-cap",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 5,
+        "max_zoom": 18,
+        "colormap_name": "c-cap"
+      },
+      "metadata": {
+        "title": "Noaa C Cap",
+        "description": "Noaa C Cap geospatial dataset from Microsoft Planetary Computer."
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "noaa-climate-normals-gridded": {
+      "collection_id": "noaa-climate-normals-gridded",
+      "source_folder": "noaa-climate-normals-gridded",
+      "rendering": {
+        "assets": [
+          "tavg_norm"
+        ],
+        "min_zoom": 3,
+        "max_zoom": 8,
+        "colormap_name": "ylorrd",
+        "rescale": [
+          -15.0,
+          35.0
+        ]
+      },
+      "metadata": {
+        "description": "The [NOAA Gridded United States Climate Normals](https://www.ncei.noaa.gov/products/land-based-station/us-climate-normals#tab-1027) provide a continuous grid of temperature and precipitation data across the contiguous United States (CONUS). The grids are derived from NOAA's [NClimGrid dataset](https://planetarycomputer.microsoft.com/dataset/group/noaa-nclimgrid), and resolutions (nominal 5x5 kilometer) and spatial extents (CONUS) therefore match that of NClimGrid. Monthly, seasonal, and annua...",
+        "keywords": [
+          "NOAA",
+          "Climate Normals",
+          "Weather",
+          "Surface Observations",
+          "Climatology",
+          "CONUS"
+        ],
+        "title": "NOAA US Gridded Climate Normals (Cloud-Optimized GeoTIFF)"
+      },
+      "classification": {
+        "data_type": "thermal",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Thermal & Temperature"
+    },
+    "noaa-mrms-qpe-1h-pass1": {
+      "collection_id": "noaa-mrms-qpe-1h-pass1",
+      "source_folder": "noaa-mrms-qpe-1h-pass1",
+      "rendering": {
+        "assets": [
+          "cog"
+        ],
+        "min_zoom": 3,
+        "max_zoom": 18,
+        "colormap_name": "qpe",
+        "rescale": [
+          0.0,
+          50.0
+        ]
+      },
+      "metadata": {
+        "description": "The [Multi-Radar Multi-Sensor (MRMS) Quantitative Precipitation Estimation (QPE)](https://www.nssl.noaa.gov/projects/mrms/) products are seamless 1-km mosaics of precipitation accumulation covering the continental United States, Alaska, Hawaii, the Caribbean, and Guam. The products are automatically generated through integration of data from multiple radars and radar networks, surface and satellite observations, numerical weather prediction (NWP) models, and climatology. The products are upda...",
+        "keywords": [
+          "NOAA",
+          "MRMS",
+          "QPE",
+          "Precipitation",
+          "Weather",
+          "United States",
+          "Guam",
+          "Caribbean"
+        ],
+        "title": "NOAA MRMS QPE 1-Hour Pass 1"
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "noaa-mrms-qpe-1h-pass2": {
+      "collection_id": "noaa-mrms-qpe-1h-pass2",
+      "source_folder": "noaa-mrms-qpe-1h-pass2",
+      "rendering": {
+        "assets": [
+          "cog"
+        ],
+        "min_zoom": 3,
+        "max_zoom": 18,
+        "colormap_name": "qpe",
+        "rescale": [
+          0.0,
+          50.0
+        ]
+      },
+      "metadata": {
+        "description": "The [Multi-Radar Multi-Sensor (MRMS) Quantitative Precipitation Estimation (QPE)](https://www.nssl.noaa.gov/projects/mrms/) products are seamless 1-km mosaics of precipitation accumulation covering the continental United States, Alaska, Hawaii, the Caribbean, and Guam. The products are automatically generated through integration of data from multiple radars and radar networks, surface and satellite observations, numerical weather prediction (NWP) models, and climatology. The products are upda...",
+        "keywords": [
+          "NOAA",
+          "MRMS",
+          "QPE",
+          "Precipitation",
+          "Weather",
+          "United States",
+          "Guam",
+          "Caribbean"
+        ],
+        "title": "NOAA MRMS QPE 1-Hour Pass 2"
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "noaa-mrms-qpe-24h-pass2": {
+      "collection_id": "noaa-mrms-qpe-24h-pass2",
+      "source_folder": "noaa-mrms-qpe-24h-pass2",
+      "rendering": {
+        "assets": [
+          "cog"
+        ],
+        "min_zoom": 3,
+        "max_zoom": 18,
+        "colormap_name": "qpe",
+        "rescale": [
+          0.0,
+          120.0
+        ]
+      },
+      "metadata": {
+        "description": "The [Multi-Radar Multi-Sensor (MRMS) Quantitative Precipitation Estimation (QPE)](https://www.nssl.noaa.gov/projects/mrms/) products are seamless 1-km mosaics of precipitation accumulation covering the continental United States, Alaska, Hawaii, the Caribbean, and Guam. The products are automatically generated through integration of data from multiple radars and radar networks, surface and satellite observations, numerical weather prediction (NWP) models, and climatology. The products are upda...",
+        "keywords": [
+          "NOAA",
+          "MRMS",
+          "QPE",
+          "Precipitation",
+          "Weather",
+          "United States",
+          "Guam",
+          "Caribbean"
+        ],
+        "title": "NOAA MRMS QPE 24-Hour Pass 2"
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "noaa-nclimgrid-monthly": {
+      "collection_id": "noaa-nclimgrid-monthly",
+      "source_folder": "noaa-nclimgrid-monthly",
+      "rendering": {
+        "assets": [
+          "prcp",
+          "tavg",
+          "tmin",
+          "tmax"
+        ],
+        "min_zoom": 3,
+        "max_zoom": 8,
+        "colormap_name": "ylgnbu",
+        "rescale": [
+          0.0,
+          250.0
+        ]
+      },
+      "metadata": {
+        "description": "The [NOAA U.S. Climate Gridded Dataset (NClimGrid)](https://www.ncei.noaa.gov/access/metadata/landing-page/bin/iso?id=gov.noaa.ncdc:C00332) consists of four climate variables derived from the [Global Historical Climatology Network daily (GHCNd)](https://www.ncei.noaa.gov/products/land-based-station/global-historical-climatology-network-daily) dataset: maximum temperature, minimum temperature, average temperature, and precipitation. The data is provided in 1/24 degree lat/lon (nominal 5x5 kilo...",
+        "keywords": [
+          "United States",
+          "NOAA",
+          "NClimGrid",
+          "Climate",
+          "Precipitation",
+          "Temperature"
+        ],
+        "title": "Monthly NOAA U.S. Climate Gridded Dataset (NClimGrid)"
+      },
+      "classification": {
+        "data_type": "thermal",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Thermal & Temperature"
+    },
+    "noaa-cdr-sea-surface-temperature-whoi": {
+      "collection_id": "noaa-cdr-sea-surface-temperature-whoi",
+      "source_folder": "noaa-cdr-sea-surface-temperature-whoi",
+      "rendering": {
+        "assets": [
+          "sea_surface_temperature"
+        ],
+        "min_zoom": 1,
+        "max_zoom": 10,
+        "colormap_name": "rdylbu_r",
+        "rescale": "0,35"
+      },
+      "metadata": {
+        "title": "NOAA CDR Sea Surface Temperature (WHOI)",
+        "description": "NOAA Climate Data Record of Sea Surface Temperature produced by Woods Hole Oceanographic Institution. Provides global 0.25° resolution daily sea surface temperature measurements in Kelvin.",
+        "keywords": [
+          "NOAA",
+          "WHOI",
+          "SST",
+          "Sea Surface Temperature",
+          "Ocean",
+          "Climate",
+          "Global"
+        ]
+      },
+      "classification": {
+        "data_type": "ocean",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Thermal & Temperature"
+    },
+    "nrcan-landcover": {
+      "collection_id": "nrcan-landcover",
+      "source_folder": "nrcan-landcover",
+      "rendering": {
+        "assets": [
+          "landcover"
+        ],
+        "min_zoom": 4,
+        "max_zoom": 18,
+        "colormap_name": "nrcan-lulc"
+      },
+      "metadata": {
+        "title": "Nrcan Landcover",
+        "description": "Natural Resources Canada land cover classification providing comprehensive coverage of Canadian landscapes."
+      },
+      "classification": {
+        "data_type": "land_cover",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Land Cover & Land Use"
+    },
+    "sentinel-1-grd": {
+      "collection_id": "sentinel-1-grd",
+      "source_folder": "sentinel-1-grd",
+      "rendering": {
+        "assets": [
+          "vv",
+          "vh"
+        ],
+        "min_zoom": 8,
+        "max_zoom": 18,
+        "rescale": [
+          0.0,
+          600.0
+        ],
+        "expression": "vv;vh;vv/vh"
+      },
+      "metadata": {
+        "description": "The [Sentinel-1](https://sentinel.esa.int/web/sentinel/missions/sentinel-1) mission is a constellation of two polar-orbiting satellites, operating day and night performing C-band synthetic aperture radar imaging. The Level-1 Ground Range Detected (GRD) products in this Collection consist of focused SAR data that has been detected, multi-looked and projected to ground range using the Earth ellipsoid model WGS84. The ellipsoid projection of the GRD products is corrected using the terrain height...",
+        "keywords": [
+          "ESA",
+          "Copernicus",
+          "Sentinel",
+          "C-Band",
+          "SAR",
+          "GRD"
+        ],
+        "title": "Sentinel 1 Level-1 Ground Range Detected (GRD)"
+      },
+      "classification": {
+        "data_type": "sar",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Synthetic Aperture Radar (SAR)"
+    },
+    "sentinel-1-rtc": {
+      "collection_id": "sentinel-1-rtc",
+      "source_folder": "sentinel-1-rtc",
+      "rendering": {
+        "assets": [
+          "vv",
+          "vh"
+        ],
+        "min_zoom": 8,
+        "max_zoom": 18,
+        "rescale": [
+          0.0,
+          0.8
+        ],
+        "expression": "0.03 + log (10e-4 - log (0.05 / (0.02 + 2 * vv)));0.05 + exp (0.25 * (log (0.01 + 2 * vv) + log (0.02 + 5 * vh)));1 - log (0.05 / (0.045 - 0.9 * vv))"
+      },
+      "metadata": {
+        "description": "The [Sentinel-1](https://sentinel.esa.int/web/sentinel/missions/sentinel-1) mission is a constellation of two polar-orbiting satellites, operating day and night performing C-band synthetic aperture radar imaging. The Sentinel-1 Radiometrically Terrain Corrected (RTC) data in this collection is a radiometrically terrain corrected product derived from the [Ground Range Detected (GRD) Level-1](https://planetarycomputer.microsoft.com/dataset/sentinel-1-grd) products produced by the European Space...",
+        "keywords": [
+          "ESA",
+          "Copernicus",
+          "Sentinel",
+          "C-Band",
+          "SAR",
+          "RTC"
+        ],
+        "title": "Sentinel 1 Radiometrically Terrain Corrected (RTC)"
+      },
+      "classification": {
+        "data_type": "sar",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Synthetic Aperture Radar (SAR)"
+    },
+    "sentinel-2": {
+      "collection_id": "sentinel-2",
+      "source_folder": "sentinel-2",
+      "rendering": {
+        "assets": [
+          "visual"
+        ],
+        "min_zoom": 9,
+        "max_zoom": 18,
+        "asset_bidx": "visual|1,2,3",
+        "nodata": 0,
+        "color_formula": "Gamma RGB 3.2 Saturation 0.8 Sigmoidal RGB 25 0.35"
+      },
+      "metadata": {
+        "description": "The [Sentinel-2](https://sentinel.esa.int/web/sentinel/missions/sentinel-2) program provides global imagery in thirteen spectral bands at 10m-60m resolution and a revisit time of approximately five days.  This dataset represents the global Sentinel-2 archive, from 2016 to the present, processed to L2A (bottom-of-atmosphere) using [Sen2Cor](https://step.esa.int/main/snap-supported-plugins/sen2cor/) and converted to [cloud-optimized GeoTIFF](https://www.cogeo.org/) format.",
+        "keywords": [
+          "Sentinel",
+          "Copernicus",
+          "ESA",
+          "Satellite",
+          "Global",
+          "Imagery",
+          "Reflectance"
+        ],
+        "title": "Sentinel-2 Level-2A"
+      },
+      "classification": {
+        "data_type": "optical",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": true
+      },
+      "category": "Optical Satellite Imagery"
+    },
+    "usda-cdl": {
+      "collection_id": "usda-cdl",
+      "source_folder": "usda-cdl",
+      "rendering": {
+        "assets": [
+          "cropland"
+        ],
+        "min_zoom": 7,
+        "max_zoom": 18,
+        "colormap_name": "usda-cdl"
+      },
+      "metadata": {
+        "description": "The Cropland Data Layer (CDL) is a product of the USDA National Agricultural Statistics Service (NASS) with the mission \"to provide timely, accurate and useful statistics in service to U.S. agriculture\" (Johnson and Mueller, 2010, p. 1204). The CDL is a crop-specific land cover classification product of more than 100 crop categories grown in the United States. CDLs are derived using a supervised land cover classification of satellite imagery. The supervised classification relies on first manu...",
+        "keywords": [
+          "USDA",
+          "United States",
+          "Land Cover",
+          "Land Use",
+          "Agriculture"
+        ],
+        "title": "USDA Cropland Data Layers (CDLs)"
+      },
+      "classification": {
+        "data_type": "land_cover",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Land Cover & Land Use"
+    },
+    "usgs-gap": {
+      "collection_id": "usgs-gap",
+      "source_folder": "usgs-gap",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 6,
+        "max_zoom": 18,
+        "colormap_name": "gap-lulc"
+      },
+      "metadata": {
+        "title": "Usgs Gap",
+        "description": "USGS Gap Analysis Project providing land cover and species habitat models for conservation planning."
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "usgs-lcmap-conus-v13": {
+      "collection_id": "usgs-lcmap-conus-v13",
+      "source_folder": "usgs-lcmap-conus-v13",
+      "rendering": {
+        "assets": [
+          "lcpri"
+        ],
+        "min_zoom": 7,
+        "max_zoom": 14,
+        "colormap_name": "usgs-lcmap"
+      },
+      "metadata": {
+        "description": "The [Land Change Monitoring, Assessment, and Projection](https://www.usgs.gov/special-topics/lcmap) (LCMAP) product provides land cover mapping and change monitoring from the U.S. Geological Survey's [Earth Resources Observation and Science](https://www.usgs.gov/centers/eros) (EROS) Center. LCMAP's Science Products are developed by applying time-series modeling on a per-pixel basis to [Landsat Analysis Ready Data](https://www.usgs.gov/landsat-missions/landsat-us-analysis-ready-data) (ARD) usi...",
+        "keywords": [
+          "USGS",
+          "LCMAP",
+          "Land Cover",
+          "Land Cover Change",
+          "CONUS"
+        ],
+        "title": "USGS LCMAP CONUS Collection 1.3"
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "usgs-lcmap-hawaii-v10": {
+      "collection_id": "usgs-lcmap-hawaii-v10",
+      "source_folder": "usgs-lcmap-hawaii-v10",
+      "rendering": {
+        "assets": [
+          "lcpri"
+        ],
+        "min_zoom": 7,
+        "max_zoom": 14,
+        "colormap_name": "usgs-lcmap"
+      },
+      "metadata": {
+        "description": "The [Land Change Monitoring, Assessment, and Projection](https://www.usgs.gov/special-topics/lcmap) (LCMAP) product provides land cover mapping and change monitoring from the U.S. Geological Survey's [Earth Resources Observation and Science](https://www.usgs.gov/centers/eros) (EROS) Center. LCMAP's Science Products are developed by applying time-series modeling on a per-pixel basis to [Landsat Analysis Ready Data](https://www.usgs.gov/landsat-missions/landsat-us-analysis-ready-data) (ARD) usi...",
+        "keywords": [
+          "USGS",
+          "LCMAP",
+          "Land Cover",
+          "Land Cover Change",
+          "Hawaii"
+        ],
+        "title": "USGS LCMAP Hawaii Collection 1.0"
+      },
+      "classification": {
+        "data_type": "unknown",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Other Datasets"
+    },
+    "3dep-lidar-classification": {
+      "collection_id": "3dep-lidar-classification",
+      "source_folder": "3dep-lidar-classification",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 10,
+        "max_zoom": 18,
+        "colormap_name": "lidar-classification",
+        "nodata": -9999
+      },
+      "metadata": {
+        "title": "3Dep Lidar Classification",
+        "description": "USGS 3DEP LiDAR CLASSIFICATION product providing high-resolution elevation and terrain data across the United States."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "3dep-lidar-dsm": {
+      "collection_id": "3dep-lidar-dsm",
+      "source_folder": "3dep-lidar-dsm",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 11,
+        "max_zoom": 18,
+        "nodata": -9999
+      },
+      "metadata": {
+        "title": "3Dep Lidar Dsm",
+        "description": "USGS 3DEP LiDAR DSM product providing high-resolution elevation and terrain data across the United States."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "3dep-lidar-dtm": {
+      "collection_id": "3dep-lidar-dtm",
+      "source_folder": "3dep-lidar-dtm",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 11,
+        "max_zoom": 18,
+        "nodata": -9999
+      },
+      "metadata": {
+        "title": "3Dep Lidar Dtm",
+        "description": "USGS 3DEP LiDAR DTM product providing high-resolution elevation and terrain data across the United States."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "3dep-lidar-dtm-native": {
+      "collection_id": "3dep-lidar-dtm-native",
+      "source_folder": "3dep-lidar-dtm-native",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 11,
+        "max_zoom": 18,
+        "nodata": -9999
+      },
+      "metadata": {
+        "title": "3Dep Lidar Dtm Native",
+        "description": "USGS 3DEP LiDAR NATIVE product providing high-resolution elevation and terrain data across the United States."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "3dep-lidar-hag": {
+      "collection_id": "3dep-lidar-hag",
+      "source_folder": "3dep-lidar-hag",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 11,
+        "max_zoom": 18,
+        "colormap_name": "lidar-hag",
+        "nodata": -9999
+      },
+      "metadata": {
+        "title": "3Dep Lidar Hag",
+        "description": "USGS 3DEP LiDAR HAG product providing high-resolution elevation and terrain data across the United States."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "3dep-lidar-intensity": {
+      "collection_id": "3dep-lidar-intensity",
+      "source_folder": "3dep-lidar-intensity",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 11,
+        "max_zoom": 18,
+        "colormap_name": "lidar-intensity"
+      },
+      "metadata": {
+        "title": "3Dep Lidar Intensity",
+        "description": "USGS 3DEP LiDAR INTENSITY product providing high-resolution elevation and terrain data across the United States."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "3dep-lidar-pointsourceid": {
+      "collection_id": "3dep-lidar-pointsourceid",
+      "source_folder": "3dep-lidar-pointsourceid",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 11,
+        "max_zoom": 18,
+        "nodata": -9999,
+        "colormap_name": "terrain",
+        "rescale": [
+          0.0,
+          800.0
+        ]
+      },
+      "metadata": {
+        "title": "3Dep Lidar Pointsourceid",
+        "description": "USGS 3DEP LiDAR POINTSOURCEID product providing high-resolution elevation and terrain data across the United States."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "3dep-lidar-returns": {
+      "collection_id": "3dep-lidar-returns",
+      "source_folder": "3dep-lidar-returns",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 11,
+        "max_zoom": 18,
+        "colormap_name": "lidar-returns",
+        "nodata": -9999
+      },
+      "metadata": {
+        "title": "3Dep Lidar Returns",
+        "description": "USGS 3DEP LiDAR RETURNS product providing high-resolution elevation and terrain data across the United States."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    },
+    "3dep-seamless": {
+      "collection_id": "3dep-seamless",
+      "source_folder": "3dep-seamless",
+      "rendering": {
+        "assets": [
+          "data"
+        ],
+        "min_zoom": 8,
+        "max_zoom": 18,
+        "colormap_name": "terrain",
+        "rescale": [
+          -1000.0,
+          4000.0
+        ]
+      },
+      "metadata": {
+        "title": "3Dep Seamless",
+        "description": "USGS 3D Elevation Program providing seamless elevation data for the United States."
+      },
+      "classification": {
+        "data_type": "elevation",
+        "is_static": false,
+        "supports_temporal": true,
+        "supports_cloud_filter": false
+      },
+      "category": "Elevation & Terrain"
+    }
+  }
+}
