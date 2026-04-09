@@ -1,0 +1,19 @@
+{
+    "azureFunctions.deploySubpath": "earth-copilot\\router-function-app",
+    "azureFunctions.scmDoBuildDuringDeployment": true,
+    "azureFunctions.pythonVenv": ".venv",
+    "azureFunctions.projectLanguage": "Python",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen",
+    "github.copilot.advanced": {
+        "mcpServers": {
+            "earth-copilot": {
+                "type": "http",
+                "url": "https://earth-copilot-mcp.politecoast-31b85ce5.canadacentral.azurecontainerapps.io",
+                "headers": {
+                    "Content-Type": "application/json"
+                }
+            }
+        }
+    }
+}

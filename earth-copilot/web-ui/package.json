@@ -1,0 +1,39 @@
+{
+  "name": "earth-copilot-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --mode production",
+    "build:dev": "vite build --mode development",
+    "preview": "vite preview --port 5173",
+    "build:analyze": "vite build --mode production && npx vite-bundle-analyzer dist",
+    "clean": "rimraf dist",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.51.9",
+    "axios": "^1.7.7",
+    "modern-normalize": "^2.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
+    "@types/node": "^20.10.4",
+    "@types/react": "^18.3.10",
+    "@types/react-dom": "^18.3.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/ui": "^4.0.17",
+    "jsdom": "^23.0.1",
+    "typescript": "^5.6.2",
+    "vite": "^7.3.1",
+    "vitest": "^4.0.17"
+  }
+}

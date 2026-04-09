@@ -1,0 +1,152 @@
+# Earth Copilot GitHub Environment Configuration Template
+#
+# This file defines the configuration for a GitHub deployment environment.
+# Copy this file for each environment (dev, staging, prod) and fill in the values.
+#
+# Usage:
+#   1. Copy this file: cp .github/environment-config-template.yml .github/environment-config-dev.yml
+#   2. Fill in all required values below
+#   3. Run bootstrap script: ./scripts/bootstrap-github-environment.sh .github/environment-config-dev.yml
+#
+# The bootstrap script will create/update:
+#   - GitHub environment with protection rules
+#   - Environment variables
+#   - Environment secrets (prompts for sensitive values)
+
+# ============================================================================
+# REQUIRED: Basic Configuration
+# ============================================================================
+
+environment:
+  # Name of the GitHub environment (must match: dev, staging, prod)
+  name: dev
+  
+  # Description for the environment
+  description: "Development environment for Earth Copilot"
+  
+  # Require manual approval before deployment (recommended for prod)
+  requireApproval: false
+  
+  # Reviewers for manual approval (GitHub usernames)
+  reviewers: []
+    # - "username1"
+    # - "username2"
+
+# ============================================================================
+# REQUIRED: Azure Configuration
+# ============================================================================
+
+variables:
+  # Azure subscription ID where resources will be deployed
+  AZURE_SUBSCRIPTION_ID: "00000000-0000-0000-0000-000000000000"
+  
+  # Azure resource group name (will be created if it doesn't exist)
+  # Format: rg-{environment} is recommended
+  AZURE_RESOURCE_GROUP: "rg-earthcopilot-dev"
+  
+  # Azure region for all resources
+  AZURE_LOCATION: "eastus"
+  
+  # Environment name prefix for resource naming
+  ENVIRONMENT_NAME: "earthcopilot-dev"
+
+# ============================================================================
+# OPTIONAL: Advanced Configuration
+# ============================================================================
+
+  # Deploy Azure AI Search (false = don't deploy, saves ~$75/month)
+  DEPLOY_AI_SEARCH: "false"
+  
+  # Skip GPT model deployments (true = faster testing, false = deploy models)
+  SKIP_MODELS: "false"
+  
+  # Enable Microsoft Entra (Azure AD) authentication
+  ENABLE_AUTHENTICATION: "false"
+
+# ============================================================================
+# SECRETS (Will be prompted during bootstrap)
+# ============================================================================
+# 
+# The bootstrap script will prompt you to enter these secrets securely.
+# DO NOT store secret values in this file.
+#
+# Required secrets:
+#   - AZURE_CREDENTIALS: Service principal JSON for Azure authentication
+#
+# Optional secrets (can be configured post-deployment):
+#   - MICROSOFT_ENTRA_CLIENT_ID: For authentication (if ENABLE_AUTHENTICATION=true)
+#   - MICROSOFT_ENTRA_TENANT_ID: For authentication (if ENABLE_AUTHENTICATION=true)
+#   - MICROSOFT_ENTRA_CLIENT_SECRET: For authentication (if ENABLE_AUTHENTICATION=true)
+#
+# ============================================================================
+
+# ============================================================================
+# AZURE_CREDENTIALS Format
+# ============================================================================
+#
+# To create the service principal and get AZURE_CREDENTIALS:
+#
+#   az ad sp create-for-rbac \
+#     --name "sp-earthcopilot-dev" \
+#     --role Contributor \
+#     --scopes /subscriptions/{subscription-id} \
+#     --sdk-auth
+#
+# This outputs JSON in the format:
+#   {
+#     "clientId": "...",
+#     "clientSecret": "...",
+#     "subscriptionId": "...",
+#     "tenantId": "...",
+#     "activeDirectoryEndpointUrl": "...",
+#     "resourceManagerEndpointUrl": "...",
+#     "activeDirectoryGraphResourceId": "...",
+#     "sqlManagementEndpointUrl": "...",
+#     "galleryEndpointUrl": "...",
+#     "managementEndpointUrl": "..."
+#   }
+#
+# Copy the entire JSON output and paste it as the AZURE_CREDENTIALS secret.
+#
+# ============================================================================
+
+# ============================================================================
+# Example Configurations
+# ============================================================================
+
+# Development Environment:
+#   - Lower costs (no AI Search, skip models for faster testing)
+#   - No approval required
+#   - Deploy to dev resource group
+#
+# Staging Environment:
+#   - Full features (with AI Search, with models)
+#   - Require approval
+#   - Deploy to staging resource group
+#
+# Production Environment:
+#   - Full features
+#   - Require approval from multiple reviewers
+#   - Deploy to prod resource group
+#   - Enable authentication
+
+# ============================================================================
+# Post-Deployment Configuration
+# ============================================================================
+#
+# After deployment completes, you can:
+#
+# 1. View all resources in Azure Portal:
+#    https://portal.azure.com/#@/resource/subscriptions/{subscription-id}/resourceGroups/{resource-group}
+#
+# 2. Get API keys from Key Vault:
+#    az keyvault secret show --vault-name {key-vault-name} --name azure-openai-api-key
+#    az keyvault secret show --vault-name {key-vault-name} --name azure-maps-subscription-key
+#
+# 3. Configure additional settings:
+#    - Update App Service configuration
+#    - Set custom domain
+#    - Configure authentication
+#    - Set up monitoring alerts
+#
+# ============================================================================
