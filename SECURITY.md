@@ -1,4 +1,5 @@
 <!-- BEGIN MICROSOFT SECURITY.MD V1.0.0 BLOCK -->
+<img width="477" height="333" alt="work-pict-Copyright" src="https://github.com/user-attachments/assets/35cdcdc1-63b4-42d1-9911-abc5d6264a0d" />
 
 ## Security
 
@@ -12,3 +13,4 @@ please review the latest guidance for Microsoft repositories at
 [https://aka.ms/SECURITY.md](https://aka.ms/SECURITY.md).
 
 <!-- END MICROSOFT SECURITY.MD BLOCK -->
+![Uploading IMG_20260511_114934.jpg…]()
