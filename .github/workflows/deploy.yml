@@ -1,0 +1,1492 @@
+﻿name: Deploy Planetary Explorer
+
+on:
+  push:
+    branches: [main, dev]
+    paths:
+      - 'planetary-explorer/infra/**'
+      - 'planetary-explorer/container-app/**'
+      - 'planetary-explorer/web-ui/**'
+      - 'scripts/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+    inputs:
+      force_all:
+        description: 'Force deploy all components'
+        required: false
+        default: false
+        type: boolean
+      web_app_name:
+        description: 'Web App name (must be globally unique - used in domain name)'
+        required: false
+        default: ''
+        type: string
+      disable_auth:
+        description: 'Disable Entra ID authentication (app will be publicly accessible â€” dev/test only)'
+        required: false
+        default: false
+        type: boolean
+      enable_private_endpoints:
+        description: 'Enable private endpoints (VNet + ACR agent pool â€” production lockdown)'
+        required: false
+        default: false
+        type: boolean
+      deploy_gpt5:
+        description: 'Deploy GPT-5 model (requires GlobalStandard quota â€” set false to use GPT-4o instead)'
+        required: false
+        default: true
+        type: boolean
+      deploy_mcp_server:
+        description: 'Deploy the MCP server Container App (exposes /mcp endpoint for Copilot agents).'
+        required: false
+        default: false
+        type: boolean
+      mcp_image_name:
+        description: 'MCP container image name:tag (must already exist in the ACR for the target environment).'
+        required: false
+        default: 'planetary-explorer-mcp:latest'
+        type: string
+      enable_mpc_pro:
+        description: 'Surface the MPC Pro toggle in the UI (requires mpcProStacUrl set in main.parameters.json).'
+        required: false
+        default: false
+        type: boolean
+      mpc_pro_stac_url:
+        description: 'STAC API base URL for your private GeoCatalog (MPC Pro). Required when enable_mpc_pro=true. Overrides the value in main.parameters.json.'
+        required: false
+        default: ''
+        type: string
+      enable_fabric:
+        description: 'Enable Microsoft Fabric integration. Off by default. When on with deploy_fabric_capacity, provisions a Fabric F2 capacity (~$262/mo).'
+        required: false
+        default: false
+        type: boolean
+      deploy_fabric_capacity:
+        description: 'Provision a new Fabric F-SKU capacity. Requires enable_fabric=true. Off by default — prefer BYO via fabric_capacity_resource_id.'
+        required: false
+        default: false
+        type: boolean
+      fabric_capacity_resource_id:
+        description: 'ARM resource ID of an existing Fabric capacity to associate (BYO). Used when enable_fabric=true and deploy_fabric_capacity=false.'
+        required: false
+        default: ''
+        type: string
+      deploy_weather_stub:
+        description: 'Deploy the CPU-only weather stub Container App so the Forecast Agent works end-to-end without GPU quota. Off by default. Image must exist in ACR (build from planetary-explorer/weather-stub-server/).'
+        required: false
+        default: false
+        type: boolean
+      weather_stub_image_name:
+        description: 'Weather stub image (name:tag) in the deployed ACR. Used when deploy_weather_stub=true.'
+        required: false
+        default: 'planetary-explorer-weather-stub:latest'
+        type: string
+      aurora_endpoint_url:
+        description: 'Production Aurora endpoint URL. When set, overrides the stub. Leave empty to use the stub (or skip Aurora entirely if deploy_weather_stub=false).'
+        required: false
+        default: ''
+        type: string
+      earth2_fcn_endpoint_url:
+        description: 'Production NVIDIA Earth-2 FCN endpoint URL. When set, overrides the stub.'
+        required: false
+        default: ''
+        type: string
+      mai_weather_endpoint_url:
+        description: 'Production MAI Weather endpoint URL (Foundry MaaS). No stub equivalent — provider stays inert when empty.'
+        required: false
+        default: ''
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+# Prevent concurrent deployments from racing and causing DeploymentActive conflicts
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+# Single-environment deployment. All pushes / manual runs target the same
+# resource group: rg-planetaryexplorer.
+#
+# Optional repo-level overrides (Settings -> Secrets and variables -> Actions -> Variables):
+#   vars.RESOURCE_GROUP (default: rg-planetaryexplorer)
+#   vars.PROJECT_NAME   (default: planetaryexplorer)
+#   vars.LOCATION       (default: eastus2)
+env:
+  TARGET_ENV: planetaryexplorer
+  RESOURCE_GROUP: ${{ vars.RESOURCE_GROUP || 'rg-planetaryexplorer' }}
+  PROJECT_NAME:   ${{ vars.PROJECT_NAME   || 'planetaryexplorer' }}
+  LOCATION:       ${{ vars.LOCATION       || 'eastus2' }}
+
+jobs:
+  # Detect which components changed
+  detect-changes:
+    name: Detect Changes
+    # ─────────────────────────────────────────────────────────────────────────
+    # Auto-deploy on push is OPT-IN per fork. The canonical OSS repo
+    # (microsoft/Planetary-Explorer) intentionally leaves ENABLE_AUTO_DEPLOY
+    # unset so a community push to main does NOT trigger an Azure deployment.
+    # Forks that have wired up their own Azure secrets/identity flip the
+    # variable on (Settings → Variables → Actions → ENABLE_AUTO_DEPLOY=true)
+    # to get push-to-deploy. `workflow_dispatch` always runs so anyone can
+    # still kick off a manual deploy from the Actions tab.
+    # ─────────────────────────────────────────────────────────────────────────
+    if: github.event_name == 'workflow_dispatch' || vars.ENABLE_AUTO_DEPLOY == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      infra: ${{ steps.filter.outputs.infra }}
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+
+      - name: Resolved deployment target (safety banner)
+        run: |
+          echo "============================================================"
+          echo " DEPLOYMENT TARGET (Planetary Explorer - single env)"
+          echo "============================================================"
+          echo "  Branch / ref       : ${{ github.ref_name }}"
+          echo "  RESOURCE_GROUP     : ${{ env.RESOURCE_GROUP }}"
+          echo "  PROJECT_NAME       : ${{ env.PROJECT_NAME }}"
+          echo "  LOCATION           : ${{ env.LOCATION }}"
+          echo "============================================================"
+
+      - name: Detect file changes
+        id: filter
+        run: |
+          # For manual trigger with force_all, deploy everything
+          if [ "${{ github.event.inputs.force_all }}" == "true" ]; then
+            echo "infra=true" >> $GITHUB_OUTPUT
+            echo "backend=true" >> $GITHUB_OUTPUT
+            echo "frontend=true" >> $GITHUB_OUTPUT
+            echo " Force deploy all components"
+            exit 0
+          fi
+          
+          # Get changed files
+          if [ "${{ github.event_name }}" == "push" ]; then
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "")
+          else
+            # For manual trigger without force_all, deploy everything
+            echo "infra=true" >> $GITHUB_OUTPUT
+            echo "backend=true" >> $GITHUB_OUTPUT
+            echo "frontend=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          # Check each component
+          INFRA_CHANGED=false
+          BACKEND_CHANGED=false
+          FRONTEND_CHANGED=false
+          
+          if echo "$CHANGED_FILES" | grep -q "^planetary-explorer/infra/"; then
+            INFRA_CHANGED=true
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "^planetary-explorer/container-app/"; then
+            BACKEND_CHANGED=true
+          fi
+          
+          if echo "$CHANGED_FILES" | grep -q "^planetary-explorer/web-ui/"; then
+            FRONTEND_CHANGED=true
+          fi
+
+          # If workflow file changed, deploy all
+          if echo "$CHANGED_FILES" | grep -q "^.github/workflows/deploy.yml"; then
+            INFRA_CHANGED=true
+            BACKEND_CHANGED=true
+            FRONTEND_CHANGED=true
+          fi
+          
+          echo "infra=$INFRA_CHANGED" >> $GITHUB_OUTPUT
+          echo "backend=$BACKEND_CHANGED" >> $GITHUB_OUTPUT
+          echo "frontend=$FRONTEND_CHANGED" >> $GITHUB_OUTPUT
+          
+          echo ""
+          echo " Components to deploy:"
+          echo "  Infrastructure: $INFRA_CHANGED"
+          echo "  Backend: $BACKEND_CHANGED"
+          echo "  Frontend: $FRONTEND_CHANGED"
+
+  # Deploy Infrastructure (only if infra files changed)
+  deploy-infrastructure:
+    name: Deploy Infrastructure
+    needs: detect-changes
+    if: needs.detect-changes.outputs.infra == 'true'
+    runs-on: ubuntu-latest
+    environment: dev
+    outputs:
+      container_registry_name: ${{ steps.discover.outputs.container_registry_name }}
+      container_app_name: ${{ steps.discover.outputs.container_app_name }}
+      web_app_name: ${{ steps.discover.outputs.web_app_name }}
+      container_app_url: ${{ steps.discover.outputs.container_app_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Azure Login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Purge Soft-Deleted Resources
+        run: |
+          echo "Checking for soft-deleted Key Vaults and AI Services accounts..."
+          
+          # Purge any soft-deleted Key Vault whose name starts with our naming pattern
+          DELETED_KV=$(az keyvault list-deleted --query "[?starts_with(name, 'kv-')].name" -o tsv 2>/dev/null || true)
+          if [ -n "$DELETED_KV" ]; then
+            for kv in $DELETED_KV; do
+              echo "  Purging soft-deleted Key Vault: $kv"
+              az keyvault purge --name "$kv" --location "${{ env.LOCATION }}" --no-wait 2>/dev/null || true
+            done
+          else
+            echo "  No soft-deleted Key Vaults found"
+          fi
+          
+          # Purge any soft-deleted Cognitive Services account whose name starts with our naming pattern
+          DELETED_COG=$(az cognitiveservices account list-deleted --query "[?starts_with(name, 'cog-foundry-')].{name:name, rg:resourceGroup, loc:location}" -o json 2>/dev/null || echo "[]")
+          if [ "$DELETED_COG" != "[]" ]; then
+            echo "$DELETED_COG" | jq -r '.[] | "\(.name) \(.rg) \(.loc)"' | while read -r cog_name cog_rg cog_loc; do
+              echo "  Purging soft-deleted AI Services: $cog_name"
+              az cognitiveservices account purge --location "$cog_loc" --resource-group "$cog_rg" --name "$cog_name" 2>/dev/null || true
+            done
+          else
+            echo "  No soft-deleted AI Services accounts found"
+          fi
+          
+          echo "Soft-delete purge check complete"
+
+      # Resolve MPC Pro enablement BEFORE the bicep deploy so the
+      # sidecar image can be built into ACR first (if ACR already
+      # exists). Without a pre-built image the sidecar Container App
+      # never starts and bicep times out with
+      # "ContainerAppOperationError: Operation expired".
+      #
+      # Rules:
+      #   * enableMpcPro is "true" when the workflow input says so OR
+      #     main.parameters.json says so.
+      #   * Sidecar can only be wired in (deployMpcMcp=true) when its
+      #     image actually exists in ACR. First-time deploys (no ACR
+      #     yet) defer the sidecar to the next run; coupling is honored
+      #     thereafter.
+      - name: Build MPC MCP sidecar image (when MPC Pro enabled)
+        id: mpc_mcp_image
+        run: |
+          set -euo pipefail
+
+          # 1. Determine enableMpcPro from workflow input OR params file.
+          INPUT_FLAG="${{ github.event.inputs.enable_mpc_pro }}"
+          PARAMS_FLAG=$(jq -r '.parameters.enableMpcPro.value // false' planetary-explorer/infra/main.parameters.json)
+          if [ "$INPUT_FLAG" = "true" ] || [ "$PARAMS_FLAG" = "true" ]; then
+            ENABLE_MPC_PRO_RESOLVED="true"
+          else
+            ENABLE_MPC_PRO_RESOLVED="false"
+          fi
+          echo "Resolved enableMpcPro = $ENABLE_MPC_PRO_RESOLVED  (input=$INPUT_FLAG, params=$PARAMS_FLAG)"
+          echo "enable_mpc_pro_resolved=$ENABLE_MPC_PRO_RESOLVED" >> $GITHUB_OUTPUT
+
+          if [ "$ENABLE_MPC_PRO_RESOLVED" != "true" ]; then
+            echo "MPC Pro disabled — skipping sidecar image build."
+            echo "image_built=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # 2. ACR must already exist (cannot build into a non-existent registry).
+          ACR_NAME=$(az acr list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv 2>/dev/null || echo "")
+          if [ -z "$ACR_NAME" ]; then
+            echo "No ACR in ${{ env.RESOURCE_GROUP }} yet (first-time deploy)."
+            echo "Sidecar will be deferred to the NEXT deploy run; this one keeps deployMpcMcp=false."
+            echo "image_built=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          echo "Found ACR: $ACR_NAME"
+
+          # 3. Read the expected image name/tag from the bicep param (single source of truth).
+          MPC_MCP_IMAGE=$(grep -oP "param mpcMcpImageName string = '\K[^']+" planetary-explorer/infra/main.bicep || echo "planetary-explorer-mpc-mcp:v1.0.9")
+          echo "Building $MPC_MCP_IMAGE from planetary-explorer/mpc-mcp-sidecar/Dockerfile"
+
+          az acr build \
+            --registry "$ACR_NAME" \
+            --image "$MPC_MCP_IMAGE" \
+            --file planetary-explorer/mpc-mcp-sidecar/Dockerfile \
+            --timeout 1800 \
+            planetary-explorer/mpc-mcp-sidecar/
+
+          echo "image_built=true" >> $GITHUB_OUTPUT
+          echo "image_name=$MPC_MCP_IMAGE" >> $GITHUB_OUTPUT
+
+      - name: Deploy Infrastructure with Bicep
+        env:
+          MPC_MCP_IMAGE_BUILT: ${{ steps.mpc_mcp_image.outputs.image_built }}
+          ENABLE_MPC_PRO_RESOLVED: ${{ steps.mpc_mcp_image.outputs.enable_mpc_pro_resolved }}
+        run: |
+          cd planetary-explorer
+          
+          DEPLOYMENT_NAME="${{ env.PROJECT_NAME }}-$(date +%Y%m%d-%H%M%S)"
+          # Private endpoints are OFF by default; enabled if user explicitly checks enable_private_endpoints
+          if [ "${{ github.event.inputs.enable_private_endpoints }}" == "true" ]; then
+            ENABLE_PE="true"
+          else
+            ENABLE_PE="false"
+          fi
+          
+          # GPT-5 is ON by default; only disabled if user explicitly unchecks deploy_gpt5
+          if [ "${{ github.event.inputs.deploy_gpt5 }}" == "false" ]; then
+            DEPLOY_GPT5="false"
+          else
+            DEPLOY_GPT5="true"
+          fi
+
+          # MCP server is OFF by default; only enabled if user explicitly checks deploy_mcp_server.
+          # Phase 1 of infra does NOT provision the MCP container app (no image yet); image deployment
+          # is a follow-up step.
+          if [ "${{ github.event.inputs.deploy_mcp_server }}" == "true" ]; then
+            DEPLOY_MCP="true"
+          else
+            DEPLOY_MCP="false"
+          fi
+
+          # MPC Pro toggle (UI surface). OFF by default. mpc_pro_stac_url overrides
+          # the value in main.parameters.json when supplied.
+          if [ "${{ github.event.inputs.enable_mpc_pro }}" == "true" ]; then
+            ENABLE_MPC_PRO="true"
+          else
+            ENABLE_MPC_PRO="false"
+          fi
+          MPC_PRO_STAC_URL="${{ github.event.inputs.mpc_pro_stac_url }}"
+
+          # Fabric toggle. OFF by default. deploy_fabric_capacity provisions a new
+          # F2 capacity (~$262/mo); BYO via fabric_capacity_resource_id otherwise.
+          if [ "${{ github.event.inputs.enable_fabric }}" == "true" ]; then
+            ENABLE_FABRIC="true"
+          else
+            ENABLE_FABRIC="false"
+          fi
+          if [ "${{ github.event.inputs.deploy_fabric_capacity }}" == "true" ]; then
+            DEPLOY_FABRIC_CAPACITY="true"
+          else
+            DEPLOY_FABRIC_CAPACITY="false"
+          fi
+          FABRIC_CAPACITY_RESOURCE_ID="${{ github.event.inputs.fabric_capacity_resource_id }}"
+
+          # Weather models. OFF by default. deploy_weather_stub stands up a
+          # CPU-only mock so the Forecast Agent works without GPU quota.
+          # Production users supply real Foundry endpoint URLs which override
+          # the stub. MAI Weather has no stub equivalent.
+          if [ "${{ github.event.inputs.deploy_weather_stub }}" == "true" ]; then
+            DEPLOY_WEATHER_STUB="true"
+          else
+            DEPLOY_WEATHER_STUB="false"
+          fi
+          WEATHER_STUB_IMAGE_NAME="${{ github.event.inputs.weather_stub_image_name }}"
+          AURORA_ENDPOINT_URL="${{ github.event.inputs.aurora_endpoint_url }}"
+          EARTH2_FCN_ENDPOINT_URL="${{ github.event.inputs.earth2_fcn_endpoint_url }}"
+          MAI_WEATHER_ENDPOINT_URL="${{ github.event.inputs.mai_weather_endpoint_url }}"
+
+          echo "Deploying Infrastructure..."
+          echo "  Target Environment: ${{ env.TARGET_ENV }}"
+          echo "  Resource Group: ${{ env.RESOURCE_GROUP }}"
+          echo "  Project Name: ${{ env.PROJECT_NAME }}"
+          echo "  Private Endpoints: $ENABLE_PE"
+          echo "  Deploy GPT-5: $DEPLOY_GPT5"
+          echo "  Deploy MCP server: $DEPLOY_MCP"
+          echo "  Enable MPC Pro: $ENABLE_MPC_PRO (stac url override: ${MPC_PRO_STAC_URL:-<from parameters.json>})"
+          echo "  Enable Fabric:  $ENABLE_FABRIC  (provision capacity: $DEPLOY_FABRIC_CAPACITY, byo id: ${FABRIC_CAPACITY_RESOURCE_ID:-<none>})"
+          echo "  Weather stub:   $DEPLOY_WEATHER_STUB  (aurora override: ${AURORA_ENDPOINT_URL:-<stub>}, earth2 override: ${EARTH2_FCN_ENDPOINT_URL:-<stub>}, mai: ${MAI_WEATHER_ENDPOINT_URL:-<inert>})"
+          echo "  Note: MCP container app is provisioned in a follow-up step after the image is built."
+
+          # Phase 1 of infra: deploy everything EXCEPT container apps (which need images that don't exist yet).
+          #
+          # Retry loop: AI Foundry / Cognitive Services accounts frequently return transient
+          # RequestConflict ("Another operation is being performed on the parent resource")
+          # when child resources (model deployments, projects, capability hosts, connections)
+          # are reconciled in parallel by ARM. The deployment is idempotent, so we retry.
+          MAX_ATTEMPTS=5
+          ATTEMPT=1
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Deployment attempt $ATTEMPT of $MAX_ATTEMPTS..."
+            DEPLOY_LOG=$(mktemp)
+            # Build optional parameter overrides for MPC Pro / Fabric so empty
+            # values fall back to main.parameters.json instead of clearing them.
+            EXTRA_PARAMS=()
+            # Only override parameters.json when the workflow input is
+            # explicitly truthy — otherwise the value in main.parameters.json
+            # wins. This lets the repo carry its own defaults (e.g. enableMpcPro=true
+            # with a pre-populated GeoCatalog URL) without each workflow run
+            # silently reverting them.
+            if [ "$ENABLE_MPC_PRO" == "true" ]; then
+              EXTRA_PARAMS+=(--parameters enableMpcPro=true)
+            fi
+            # Sidecar coupling: only wire the sidecar in when MPC Pro is
+            # enabled AND its image was built into ACR by the previous step.
+            # Otherwise force both deployMpcMcp and useMpcMcp to false so
+            # bicep doesn't try to provision a Container App with no image
+            # (the failure mode of run 26650112386).
+            if [ "$ENABLE_MPC_PRO_RESOLVED" == "true" ] && [ "$MPC_MCP_IMAGE_BUILT" == "true" ]; then
+              echo "MPC Pro on + image built -> provisioning sidecar."
+              EXTRA_PARAMS+=(--parameters deployMpcMcp=true)
+              EXTRA_PARAMS+=(--parameters useMpcMcp=true)
+            else
+              echo "MPC Pro off or image not built -> sidecar disabled this run."
+              EXTRA_PARAMS+=(--parameters deployMpcMcp=false)
+              EXTRA_PARAMS+=(--parameters useMpcMcp=false)
+            fi
+            if [ "$ENABLE_FABRIC" == "true" ]; then
+              EXTRA_PARAMS+=(--parameters enableFabric=true)
+            fi
+            if [ "$DEPLOY_FABRIC_CAPACITY" == "true" ]; then
+              EXTRA_PARAMS+=(--parameters deployFabricCapacity=true)
+            fi
+            if [ "$DEPLOY_WEATHER_STUB" == "true" ]; then
+              EXTRA_PARAMS+=(--parameters deployWeatherStub=true)
+            fi
+            if [ -n "$MPC_PRO_STAC_URL" ]; then
+              EXTRA_PARAMS+=(--parameters mpcProStacUrl="$MPC_PRO_STAC_URL")
+            fi
+            if [ -n "$FABRIC_CAPACITY_RESOURCE_ID" ]; then
+              EXTRA_PARAMS+=(--parameters fabricCapacityResourceId="$FABRIC_CAPACITY_RESOURCE_ID")
+            fi
+            if [ "$DEPLOY_WEATHER_STUB" == "true" ] && [ -n "$WEATHER_STUB_IMAGE_NAME" ]; then
+              EXTRA_PARAMS+=(--parameters weatherStubImageName="$WEATHER_STUB_IMAGE_NAME")
+            fi
+            if [ -n "$AURORA_ENDPOINT_URL" ]; then
+              EXTRA_PARAMS+=(--parameters auroraEndpointUrl="$AURORA_ENDPOINT_URL")
+            fi
+            if [ -n "$EARTH2_FCN_ENDPOINT_URL" ]; then
+              EXTRA_PARAMS+=(--parameters earth2FcnEndpointUrl="$EARTH2_FCN_ENDPOINT_URL")
+            fi
+            if [ -n "$MAI_WEATHER_ENDPOINT_URL" ]; then
+              EXTRA_PARAMS+=(--parameters maiWeatherEndpointUrl="$MAI_WEATHER_ENDPOINT_URL")
+            fi
+
+            # Use main.parameters.json as the baseline so values like
+            # mpcProStacUrl and enableMpcPro persist across deploys. Without
+            # this every run would reset opt-in parameters to their bicep
+            # defaults (e.g. mpcProStacUrl='') because individual --parameters
+            # flags only override the keys they name.
+            if az deployment sub create \
+              --location "${{ env.LOCATION }}" \
+              --template-file infra/main.bicep \
+              --parameters @infra/main.parameters.json \
+              --parameters environmentName="${{ env.PROJECT_NAME }}" \
+              --parameters location="${{ env.LOCATION }}" \
+              --parameters deployAIFoundry=true \
+              --parameters deployGpt5=$DEPLOY_GPT5 \
+              --parameters containerImage="" \
+              --parameters enablePrivateEndpoints=$ENABLE_PE \
+              "${EXTRA_PARAMS[@]}" \
+              --name "${DEPLOYMENT_NAME}-attempt${ATTEMPT}" \
+              --output none 2> "$DEPLOY_LOG"; then
+              echo "Infrastructure deployed successfully on attempt $ATTEMPT"
+              rm -f "$DEPLOY_LOG"
+              break
+            fi
+            
+            ERR_OUTPUT=$(cat "$DEPLOY_LOG")
+            echo "Deployment attempt $ATTEMPT failed:"
+            echo "$ERR_OUTPUT"
+            rm -f "$DEPLOY_LOG"
+            
+            # Only retry on transient RequestConflict on Cognitive Services parent resource
+            if echo "$ERR_OUTPUT" | grep -q "RequestConflict" && \
+               echo "$ERR_OUTPUT" | grep -q "Another operation is being performed"; then
+              if [ $ATTEMPT -lt $MAX_ATTEMPTS ]; then
+                BACKOFF=$((30 * ATTEMPT))
+                echo "Transient RequestConflict on parent resource â€” waiting ${BACKOFF}s before retry..."
+                sleep $BACKOFF
+                ATTEMPT=$((ATTEMPT + 1))
+                continue
+              fi
+            fi
+            
+            echo "::error::Infrastructure deployment failed (non-retryable or max attempts exhausted)"
+            exit 1
+          done
+
+      - name: Discover Resource Names
+        id: discover
+        run: |
+          echo "Discovering deployed resource names..."
+          
+          # Discover Container Registry
+          ACR_NAME=$(az acr list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          echo "container_registry_name=$ACR_NAME" >> $GITHUB_OUTPUT
+          echo "  Container Registry: $ACR_NAME"
+          
+          # Discover Container App
+          # Filter to the API container app (ca-${PROJECT_NAME}-api*); the RG
+          # may also host the mpc-mcp sidecar and ca-weather-providers, which
+          # would otherwise be picked alphabetically first by [0].name.
+          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[?starts_with(name, 'ca-${{ env.PROJECT_NAME }}-api')] | [0].name" -o tsv)
+          echo "container_app_name=$CA_NAME" >> $GITHUB_OUTPUT
+          echo "  Container App: $CA_NAME"
+          
+          # Discover Web App
+          WA_NAME=$(az webapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          echo "web_app_name=$WA_NAME" >> $GITHUB_OUTPUT
+          echo "  Web App: $WA_NAME"
+          
+          # Get Container App URL
+          if [ -n "$CA_NAME" ]; then
+            CA_URL=$(az containerapp show --name "$CA_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query "properties.configuration.ingress.fqdn" -o tsv)
+            echo "container_app_url=https://$CA_URL" >> $GITHUB_OUTPUT
+            echo "  Container App URL: https://$CA_URL"
+          fi
+
+  # Deploy Backend (if backend files changed OR infra deployed)
+  deploy-backend:
+    name: Deploy Backend
+    needs: [detect-changes, deploy-infrastructure]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.backend == 'true' || needs.detect-changes.outputs.infra == 'true') &&
+      (needs.deploy-infrastructure.result == 'success' || needs.deploy-infrastructure.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: dev
+    outputs:
+      container_app_url: ${{ steps.deploy.outputs.container_app_url }}
+      container_app_name: ${{ steps.discover.outputs.container_app_name }}
+      container_registry_name: ${{ steps.discover.outputs.container_registry_name }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Azure Login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Discover Resource Names
+        id: discover
+        run: |
+          echo "Discovering resource names..."
+          
+          # Discover Container Registry
+          ACR_NAME=$(az acr list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$ACR_NAME" ]; then
+            echo "ERROR: No Container Registry found in ${{ env.RESOURCE_GROUP }}"
+            echo "   Run infrastructure deployment first!"
+            exit 1
+          fi
+          echo "container_registry_name=$ACR_NAME" >> $GITHUB_OUTPUT
+          echo "  Container Registry: $ACR_NAME"
+          
+          # Discover Container App Environment
+          CAE_NAME=$(az containerapp env list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$CAE_NAME" ]; then
+            echo "ERROR: No Container App Environment found in ${{ env.RESOURCE_GROUP }}"
+            echo "   Run infrastructure deployment first!"
+            exit 1
+          fi
+          echo "container_app_env_name=$CAE_NAME" >> $GITHUB_OUTPUT
+          echo "  Container App Environment: $CAE_NAME"
+          
+          # Discover Container App (may not exist yet on first deploy)
+          # Filter to the API container app; the RG may also host the
+          # mpc-mcp sidecar and ca-weather-providers, which would otherwise
+          # be picked alphabetically first by [0].name.
+          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[?starts_with(name, 'ca-${{ env.PROJECT_NAME }}-api')] | [0].name" -o tsv)
+          if [ -z "$CA_NAME" ]; then
+            echo "  INFO: No Container App found - will create one"
+            echo "container_app_exists=false" >> $GITHUB_OUTPUT
+          else
+            echo "container_app_name=$CA_NAME" >> $GITHUB_OUTPUT
+            echo "container_app_exists=true" >> $GITHUB_OUTPUT
+            echo "  Container App: $CA_NAME"
+          fi
+
+      - name: Ensure public network access (test mode)
+        if: ${{ github.event.inputs.enable_private_endpoints != 'true' }}
+        run: |
+          # This branch deploys in fully-public mode for functional testing.
+          # Bicep defaults all resources to publicNetworkAccess=Enabled when
+          # enablePrivateEndpoints=false, but deployed state can drift (a
+          # prior private-endpoint run, a manual portal change, a policy).
+          # Reset every relevant resource to public so the build and the
+          # running app can both reach what they need. All commands are
+          # idempotent -- no-ops when the resource is already public.
+          set +e  # don't fail the job if a single resource doesn't exist
+          RG="${{ env.RESOURCE_GROUP }}"
+          echo "â”€â”€ Resetting network access to public in $RG â”€â”€â”€â”€â”€â”€â”€â”€â”€"
+
+          # 1. ACR -- the build's blocker. Trust ACR Tasks + default Allow.
+          for ACR in $(az acr list -g "$RG" --query "[].name" -o tsv); do
+            echo "  ACR $ACR -> Allow + trusted services"
+            az acr update --name "$ACR" --allow-trusted-services true >/dev/null
+            az acr update --name "$ACR" --default-action Allow >/dev/null
+          done
+
+          # 2. Storage accounts.
+          for SA in $(az storage account list -g "$RG" --query "[].name" -o tsv); do
+            echo "  Storage $SA -> Enabled + Allow"
+            az storage account update -n "$SA" -g "$RG" \
+              --public-network-access Enabled --default-action Allow >/dev/null
+          done
+
+          # 3. Key Vault.
+          for KV in $(az keyvault list -g "$RG" --query "[].name" -o tsv); do
+            echo "  KeyVault $KV -> Enabled"
+            az keyvault update -n "$KV" -g "$RG" \
+              --public-network-access Enabled --default-action Allow >/dev/null
+          done
+
+          # 4. Cognitive Services / AI Foundry.
+          for CS in $(az cognitiveservices account list -g "$RG" --query "[].name" -o tsv); do
+            echo "  CognitiveServices $CS -> Enabled"
+            az cognitiveservices account update -n "$CS" -g "$RG" \
+              --custom-domain "$CS" \
+              --api-properties publicNetworkAccess=Enabled >/dev/null 2>&1 || \
+            az resource update --resource-group "$RG" --name "$CS" \
+              --resource-type "Microsoft.CognitiveServices/accounts" \
+              --set properties.publicNetworkAccess=Enabled \
+                    properties.networkAcls.defaultAction=Allow >/dev/null 2>&1 || true
+          done
+
+          # Brief settle so the data-plane firewall picks up the changes
+          # before az acr build / kv get-secret hit the registry.
+          sleep 15
+          echo "â”€â”€ Public-mode remediation complete â”€â”€â”€â”€â”€â”€â”€â”€â”€"
+
+      - name: Build and Deploy Backend
+        id: deploy
+        env:
+          RESOURCE_GROUP: ${{ env.RESOURCE_GROUP }}
+          PROJECT_NAME: ${{ env.PROJECT_NAME }}
+          ACR_NAME: ${{ steps.discover.outputs.container_registry_name }}
+          CAE_NAME: ${{ steps.discover.outputs.container_app_env_name }}
+          CA_EXISTS: ${{ steps.discover.outputs.container_app_exists }}
+          CA_NAME: ${{ steps.discover.outputs.container_app_name }}
+          ENABLE_PRIVATE_ENDPOINTS: ${{ github.event.inputs.enable_private_endpoints }}
+        run: bash "$GITHUB_WORKSPACE/scripts/deploy-backend.sh"
+
+  # Deploy Frontend (if frontend files changed, runs after backend)
+  deploy-frontend:
+    name: Deploy Frontend
+    needs: [detect-changes, deploy-infrastructure, deploy-backend]
+    if: |
+      always() &&
+      (needs.detect-changes.outputs.frontend == 'true' || needs.detect-changes.outputs.infra == 'true') &&
+      (needs.deploy-infrastructure.result == 'success' || needs.deploy-infrastructure.result == 'skipped') &&
+      (needs.deploy-backend.result == 'success' || needs.deploy-backend.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: dev
+    outputs:
+      web_app_name: ${{ steps.discover.outputs.web_app_name }}
+      web_app_url: ${{ steps.deploy.outputs.web_app_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: planetary-explorer/web-ui/package-lock.json
+
+      - name: Azure Login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Discover Resource Names
+        id: discover
+        run: |
+          echo "Discovering resource names..."
+          
+          # Discover Container App
+          # Filter to the API container app; the RG may also host the
+          # mpc-mcp sidecar and ca-weather-providers, which would otherwise
+          # be picked alphabetically first by [0].name.
+          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[?starts_with(name, 'ca-${{ env.PROJECT_NAME }}-api')] | [0].name" -o tsv)
+          if [ -z "$CA_NAME" ]; then
+            echo "ERROR: No Container App found in ${{ env.RESOURCE_GROUP }}"
+            exit 1
+          fi
+          echo "container_app_name=$CA_NAME" >> $GITHUB_OUTPUT
+          echo "  Container App: $CA_NAME"
+          
+          # Discover or create Web App
+          WA_NAME=$(az webapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$WA_NAME" ]; then
+            echo "  INFO: No Web App found - will create one"
+            echo "web_app_exists=false" >> $GITHUB_OUTPUT
+            # Use user-provided name or generate a unique default
+            WA_NAME="${{ github.event.inputs.web_app_name }}"
+            if [ -z "$WA_NAME" ]; then
+              # Generate unique name using resource group hash to avoid global conflicts
+              UNIQUE_SUFFIX=$(echo -n "${{ env.RESOURCE_GROUP }}-${{ github.repository }}" | md5sum | cut -c1-8)
+              WA_NAME="app-${{ env.PROJECT_NAME }}-${UNIQUE_SUFFIX}"
+              echo "  Generated unique Web App name: $WA_NAME"
+            fi
+          else
+            echo "web_app_exists=true" >> $GITHUB_OUTPUT
+            echo "  Web App: $WA_NAME"
+          fi
+          echo "web_app_name=$WA_NAME" >> $GITHUB_OUTPUT
+
+      - name: Get Backend URL
+        id: get-backend-url
+        run: |
+          CA_NAME="${{ steps.discover.outputs.container_app_name }}"
+          CONTAINER_APP_URL=$(az containerapp show \
+            --name "$CA_NAME" \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "properties.configuration.ingress.fqdn" -o tsv)
+          echo "backend_url=https://$CONTAINER_APP_URL" >> $GITHUB_OUTPUT
+          echo "  Backend URL: https://$CONTAINER_APP_URL"
+
+      - name: Get Azure Maps Key
+        id: get-maps-key
+        run: |
+          # Find Azure Maps account in resource group
+          MAPS_ACCOUNT=$(az maps account list \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "[0].name" -o tsv)
+          
+          if [ -n "$MAPS_ACCOUNT" ]; then
+            MAPS_KEY=$(az maps account keys list \
+              --name "$MAPS_ACCOUNT" \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --query "primaryKey" -o tsv)
+            echo "maps_key=$MAPS_KEY" >> $GITHUB_OUTPUT
+            echo "Azure Maps key retrieved from: $MAPS_ACCOUNT"
+          else
+            echo "WARNING: No Azure Maps account found in ${{ env.RESOURCE_GROUP }}"
+            echo "maps_key=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build and Deploy Frontend
+        id: deploy
+        run: |
+          echo "Building and deploying frontend..."
+          
+          WA_NAME="${{ steps.discover.outputs.web_app_name }}"
+          WA_EXISTS="${{ steps.discover.outputs.web_app_exists }}"
+          # Private endpoints are OFF by default; enabled if user explicitly checks enable_private_endpoints
+          if [ "${{ github.event.inputs.enable_private_endpoints }}" == "true" ]; then
+            ENABLE_PE="true"
+          else
+            ENABLE_PE="false"
+          fi
+          
+          # Determine SKU: S1 required for VNet integration, F1 otherwise
+          if [ "$ENABLE_PE" == "true" ]; then
+            SKU="S1"
+            echo "  Private endpoints enabled â€” using S1 SKU for VNet integration"
+          else
+            SKU="F1"
+          fi
+          
+          # Create Web App if it doesn't exist
+          if [ "$WA_EXISTS" != "true" ]; then
+            echo "Creating new Web App..."
+            
+            # Create App Service Plan
+            ASP_NAME="asp-${{ env.PROJECT_NAME }}"
+            az appservice plan create \
+              --name "$ASP_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --location "${{ env.LOCATION }}" \
+              --sku "$SKU" \
+              --is-linux \
+              --output none
+            
+            echo "  Created App Service Plan: $ASP_NAME (SKU: $SKU)"
+            
+            # Create Web App
+            az webapp create \
+              --name "$WA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --plan "$ASP_NAME" \
+              --runtime "NODE:22-lts" \
+              --output none
+            
+            echo "  Created Web App: $WA_NAME"
+            
+            # Configure Web App
+            az webapp config appsettings set \
+              --name "$WA_NAME" \
+              --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --settings \
+                SCM_DO_BUILD_DURING_DEPLOYMENT=false \
+                WEBSITE_NODE_DEFAULT_VERSION=~22 \
+                VITE_API_BASE_URL="${{ steps.get-backend-url.outputs.backend_url }}" \
+                PORT=8080 \
+              --output none
+            
+            echo "  Configured Web App settings"
+          else
+            # If PE enabled and app already exists, upgrade to S1 if needed
+            if [ "$ENABLE_PE" == "true" ]; then
+              ASP_NAME=$(az webapp show --name "$WA_NAME" --resource-group "${{ env.RESOURCE_GROUP }}" \
+                --query "appServicePlanId" -o tsv | xargs -I{} basename {})
+              CURRENT_SKU=$(az appservice plan show --name "$ASP_NAME" --resource-group "${{ env.RESOURCE_GROUP }}" \
+                --query "sku.name" -o tsv)
+              if [ "$CURRENT_SKU" == "F1" ] || [ "$CURRENT_SKU" == "B1" ]; then
+                echo "  Upgrading App Service Plan to S1 for VNet integration..."
+                az appservice plan update \
+                  --name "$ASP_NAME" \
+                  --resource-group "${{ env.RESOURCE_GROUP }}" \
+                  --sku S1 \
+                  --output none
+              fi
+            fi
+          fi
+          
+          # Add VNet integration if private endpoints are enabled
+          if [ "$ENABLE_PE" == "true" ]; then
+            VNET_NAME=$(az network vnet list --resource-group "${{ env.RESOURCE_GROUP }}" \
+              --query "[0].name" -o tsv)
+            if [ -n "$VNET_NAME" ]; then
+              echo "  Adding VNet integration (subnet: snet-app-service)..."
+              az webapp vnet-integration add \
+                --name "$WA_NAME" \
+                --resource-group "${{ env.RESOURCE_GROUP }}" \
+                --vnet "$VNET_NAME" \
+                --subnet "snet-app-service" \
+                --output none 2>/dev/null || echo "  VNet integration already configured"
+            fi
+          fi
+          
+          cd planetary-explorer/web-ui
+          
+          # Install and build with environment variables
+          npm ci
+          VITE_API_BASE_URL="${{ steps.get-backend-url.outputs.backend_url }}" \
+          VITE_AZURE_MAPS_SUBSCRIPTION_KEY="${{ steps.get-maps-key.outputs.maps_key }}" \
+          npm run build
+          
+          # Create server for App Service
+          cat > dist/server.js << 'EOF'
+          const express = require('express');
+          const path = require('path');
+          const app = express();
+          const port = process.env.PORT || 8080;
+          app.use(express.static(__dirname));
+          app.get('*', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+          app.listen(port, () => console.log('Server running on port ' + port));
+          EOF
+          
+          cat > dist/package.json << 'EOF'
+          {"name":"planetary-explorer-ui","version":"1.0.0","main":"server.js","scripts":{"start":"node server.js"},"dependencies":{"express":"^4.18.0"}}
+          EOF
+          
+          cd dist
+          npm install --production
+          zip -r ../deploy.zip .
+          cd ..
+          
+          # Deploy to App Service
+          az webapp deploy \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --name "$WA_NAME" \
+            --src-path deploy.zip \
+            --type zip
+          
+          WEB_URL=$(az webapp show \
+            --resource-group "${{ env.RESOURCE_GROUP }}" \
+            --name "$WA_NAME" \
+            --query "defaultHostName" -o tsv)
+          
+          echo "web_app_url=https://$WEB_URL" >> $GITHUB_OUTPUT
+          echo "Frontend deployed to: https://$WEB_URL"
+
+  # Enable Azure AI Agent Service (required for GEOINT agents)
+  # -----------------------------------------------------------------------------
+  # Enables Agent Service capability hosts on the AI Foundry account so that
+  # GEOINT agents (Vision, Terrain, Mobility, Building Damage, Comparison,
+  # Extreme Weather) can use multi-turn tool orchestration.
+  #
+  # The Router Agent works immediately (Semantic Kernel + Azure OpenAI),
+  # but all specialized GEOINT agents require Agent Service to function.
+  #
+  # This job:
+  #   1. Enables allowProjectManagement on the CogSvc account
+  #   2. Creates a CogSvc project sub-resource
+  #   3. Creates account-level and project-level capability hosts (Agents)
+  #   4. Assigns required roles to the Container App's managed identity
+  #   5. Updates AZURE_AI_PROJECT_ENDPOINT env var on the Container App
+  # -----------------------------------------------------------------------------
+  enable-agent-service:
+    name: Enable Agent Service
+    needs: [deploy-backend, deploy-frontend]
+    if: |
+      always() &&
+      needs.deploy-backend.result == 'success' &&
+      (needs.deploy-frontend.result == 'success' || needs.deploy-frontend.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment: dev
+    outputs:
+      agent_service_enabled: ${{ steps.enable.outputs.agent_service_enabled }}
+    steps:
+      - name: Azure Login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Enable Agent Service
+        id: enable
+        run: |
+          set -euo pipefail
+
+          API_VERSION="2025-04-01-preview"
+          PROJECT_NAME="planetary-explorer-agents"
+
+          # -- Discover resources --
+          SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+          echo "Subscription: $SUBSCRIPTION_ID"
+
+          ACCOUNT_NAME=$(az cognitiveservices account list \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "[?kind=='AIServices'].name | [0]" -o tsv)
+          if [ -z "$ACCOUNT_NAME" ]; then
+            echo "ERROR: No AIServices account found in ${{ env.RESOURCE_GROUP }}"
+            echo "Agent Service cannot be enabled without AI Foundry."
+            exit 1
+          fi
+          echo "AI Foundry account: $ACCOUNT_NAME"
+
+          CA_NAME=$(az containerapp list \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "[0].name" -o tsv)
+          if [ -z "$CA_NAME" ]; then
+            echo "ERROR: No Container App found in ${{ env.RESOURCE_GROUP }}"
+            exit 1
+          fi
+          echo "Container App: $CA_NAME"
+
+          BASE_URL="https://management.azure.com/subscriptions/$SUBSCRIPTION_ID/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.CognitiveServices/accounts/$ACCOUNT_NAME"
+
+          # -- Helper: wait for provisioning --
+          wait_for_provisioning() {
+            local url="$1"
+            local timeout="${2:-900}"
+            local elapsed=0
+            while [ $elapsed -lt $timeout ]; do
+              sleep 15
+              elapsed=$((elapsed + 15))
+              state=$(az rest --method get \
+                --url "${url}?api-version=${API_VERSION}" \
+                --query "properties.provisioningState" -o tsv 2>/dev/null || echo "Unknown")
+              echo "  State: $state (${elapsed}s)"
+              if [ "$state" == "Succeeded" ]; then return 0; fi
+              if [ "$state" == "Failed" ]; then echo "ERROR: Provisioning failed"; return 1; fi
+            done
+            echo "ERROR: Provisioning timed out after ${timeout}s"
+            return 1
+          }
+
+          # -- Step 1: Enable allowProjectManagement --
+          echo ""
+          echo "=== Step 1: Enable allowProjectManagement ==="
+          
+          # Wait for any in-flight provisioning (model deployments etc.) to finish
+          # before patching the account, otherwise we get RequestConflict.
+          echo "  Pre-check: ensuring account is in terminal state ..."
+          wait_for_provisioning "$BASE_URL" 900 || {
+            echo "::warning::Account did not reach terminal state in 15min; attempting patch anyway."
+          }
+          
+          # Detect current publicNetworkAccess state so we don't undo PE lockdown
+          CURRENT_PNA=$(az cognitiveservices account show \
+            --name "$ACCOUNT_NAME" --resource-group ${{ env.RESOURCE_GROUP }} \
+            --query "properties.publicNetworkAccess" -o tsv 2>/dev/null || echo "Enabled")
+          echo "  Current publicNetworkAccess: $CURRENT_PNA"
+          
+          if [ "$CURRENT_PNA" == "Disabled" ]; then
+            NETWORK_ACTION="Deny"
+          else
+            NETWORK_ACTION="Allow"
+          fi
+          
+          BODY=$(cat <<EOF
+          {
+            "location": "${{ env.LOCATION }}",
+            "kind": "AIServices",
+            "sku": { "name": "S0" },
+            "identity": { "type": "SystemAssigned" },
+            "properties": {
+              "allowProjectManagement": true,
+              "customSubDomainName": "$ACCOUNT_NAME",
+              "publicNetworkAccess": "$CURRENT_PNA",
+              "disableLocalAuth": true,
+              "networkAcls": { "defaultAction": "$NETWORK_ACTION" }
+            }
+          }
+          EOF
+          )
+          az rest --method put \
+            --url "${BASE_URL}?api-version=${API_VERSION}" \
+            --body "$BODY" \
+            --query "properties.allowProjectManagement" -o tsv 2>&1 || true
+          wait_for_provisioning "$BASE_URL"
+          echo "  allowProjectManagement enabled"
+
+          # -- Step 2: Create CogSvc project sub-resource --
+          echo ""
+          echo "=== Step 2: Create CogSvc project '$PROJECT_NAME' ==="
+          PROJECT_URL="${BASE_URL}/projects/${PROJECT_NAME}"
+          PROJECT_BODY=$(cat <<EOF
+          {
+            "location": "${{ env.LOCATION }}",
+            "identity": { "type": "SystemAssigned" },
+            "properties": {
+              "description": "Planetary Explorer GEOINT Agent Project",
+              "displayName": "Planetary Explorer Agents"
+            }
+          }
+          EOF
+          )
+          result=$(az rest --method put \
+            --url "${PROJECT_URL}?api-version=${API_VERSION}" \
+            --body "$PROJECT_BODY" \
+            --query "properties.provisioningState" -o tsv 2>&1 || echo "Unknown")
+          echo "  Project state: $result"
+          if [ "$result" != "Succeeded" ]; then
+            wait_for_provisioning "$PROJECT_URL"
+          fi
+
+          # -- Step 3: Create account-level capability host --
+          echo ""
+          echo "=== Step 3: Create account capability host ==="
+          ACCT_CAP_URL="${BASE_URL}/capabilityHosts/default"
+          az rest --method put \
+            --url "${ACCT_CAP_URL}?api-version=${API_VERSION}" \
+            --body '{"properties":{"capabilityHostKind":"Agents"}}' \
+            --query "properties.provisioningState" -o tsv 2>&1 || true
+          wait_for_provisioning "$ACCT_CAP_URL"
+          echo "  Account capability host created"
+
+          # -- Step 4: Create project-level capability host --
+          echo ""
+          echo "=== Step 4: Create project capability host ==="
+          PROJ_CAP_URL="${PROJECT_URL}/capabilityHosts/default"
+          az rest --method put \
+            --url "${PROJ_CAP_URL}?api-version=${API_VERSION}" \
+            --body '{"properties":{"capabilityHostKind":"Agents"}}' \
+            --query "properties.provisioningState" -o tsv 2>&1 || true
+          wait_for_provisioning "$PROJ_CAP_URL"
+          echo "  Project capability host created"
+
+          # -- Step 5: Assign roles to Container App managed identity --
+          echo ""
+          echo "=== Step 5: Assign roles to Container App MI ==="
+          PRINCIPAL_ID=$(az containerapp show \
+            -n "$CA_NAME" -g ${{ env.RESOURCE_GROUP }} \
+            --query "identity.principalId" -o tsv)
+          echo "  MI Principal ID: $PRINCIPAL_ID"
+
+          SCOPE="/subscriptions/$SUBSCRIPTION_ID/resourceGroups/${{ env.RESOURCE_GROUP }}/providers/Microsoft.CognitiveServices/accounts/$ACCOUNT_NAME"
+
+          for ROLE in "Azure AI User" "Cognitive Services OpenAI Contributor"; do
+            echo "  Assigning: $ROLE"
+            az role assignment create \
+              --assignee-object-id "$PRINCIPAL_ID" \
+              --assignee-principal-type ServicePrincipal \
+              --role "$ROLE" \
+              --scope "$SCOPE" \
+              -o none 2>/dev/null || echo "  (already assigned or insufficient permissions)"
+          done
+
+          # -- Step 6: Update AZURE_AI_PROJECT_ENDPOINT env var --
+          echo ""
+          echo "=== Step 6: Update AZURE_AI_PROJECT_ENDPOINT ==="
+          ENDPOINT="https://${ACCOUNT_NAME}.services.ai.azure.com/api/projects/${PROJECT_NAME}"
+          echo "  Endpoint: $ENDPOINT"
+          az containerapp update \
+            -n "$CA_NAME" -g ${{ env.RESOURCE_GROUP }} \
+            --set-env-vars "AZURE_AI_PROJECT_ENDPOINT=$ENDPOINT" \
+            -o none 2>/dev/null || true
+
+          echo ""
+          echo "Agent Service enabled successfully"
+          echo "agent_service_enabled=true" >> $GITHUB_OUTPUT
+
+  # Configure Entra ID Auth for Frontend and Backend (runs after frontend deployment)
+  # -----------------------------------------------------------------------------
+  # Configures Microsoft Entra ID (Azure AD) authentication on both:
+  #   - Frontend Web App  (EasyAuth with login redirect)
+  #   - Backend Container App (EasyAuth with Return401 for unauthenticated requests)
+  #
+  # The frontend forwards the user's id_token as a Bearer header on every API call.
+  # The backend validates the token and returns 401 if missing/invalid.
+  # Health (/api/health), docs (/docs), and OpenAPI (/openapi.json) are excluded.
+  #
+  # Prerequisites (set in GitHub Environment "dev"):
+  #   Secret:   AUTH_CLIENT_ID       â€” Entra app registration Client ID (REQUIRED)
+  #   Variable: AUTH_AUTHORIZED_USERS â€” Comma-separated UPNs (optional, e.g. "user@org.com,user2@org.com")
+  #
+  # AUTH_CLIENT_ID must be created manually (one-time setup):
+  #   1. Go to Azure Portal â†’ Entra ID â†’ App registrations â†’ New registration
+  #   2. Name: "<project>-Auth", Supported account types: "Single tenant"
+  #   3. Redirect URI: https://<webapp>.azurewebsites.net/.auth/login/aad/callback
+  #   4. Copy the Application (client) ID
+  #   5. Save: gh secret set AUTH_CLIENT_ID --env dev --body "<CLIENT_ID>"
+  #
+  # If AUTH_CLIENT_ID is not set, auth is skipped and the app is publicly accessible.
+  # See QUICK_DEPLOY.md for setup instructions.
+  # -----------------------------------------------------------------------------
+  configure-auth:
+    name: Configure Entra ID Auth (Frontend + Backend)
+    needs: [deploy-frontend]
+    if: needs.deploy-frontend.result == 'success'
+    runs-on: ubuntu-latest
+    environment: dev
+    outputs:
+      auth_configured: ${{ steps.auth.outputs.auth_configured }}
+    steps:
+      - name: Check auth prerequisites
+        id: check
+        run: |
+          DISABLE_AUTH="${{ github.event.inputs.disable_auth }}"
+          HAS_CLIENT_ID="false"
+          if [ -n "${{ secrets.AUTH_CLIENT_ID }}" ]; then
+            HAS_CLIENT_ID="true"
+          fi
+
+          if [ "$DISABLE_AUTH" == "true" ]; then
+            echo "mode=skip" >> $GITHUB_OUTPUT
+            echo "Auth explicitly disabled â€” app will be publicly accessible"
+          elif [ "$HAS_CLIENT_ID" == "true" ]; then
+            echo "mode=existing" >> $GITHUB_OUTPUT
+            echo "Using existing app registration from AUTH_CLIENT_ID secret"
+          else
+            echo "mode=skip" >> $GITHUB_OUTPUT
+            echo ""
+            echo "================================================================="
+            echo "AUTH_CLIENT_ID secret is not set â€” skipping authentication setup."
+            echo "The app will be publicly accessible without login."
+            echo ""
+            echo "To enable Entra ID auth (one-time setup):"
+            echo "  1. Create an app registration in Azure Portal"
+            echo "     -> https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade"
+            echo "  2. Save the Client ID as a GitHub secret:"
+            echo "     -> gh secret set AUTH_CLIENT_ID --env dev --body \"<CLIENT_ID>\""
+            echo "  3. Re-run this pipeline"
+            echo "================================================================="
+          fi
+
+      - name: Azure Login
+        if: steps.check.outputs.mode != 'skip'
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Configure Entra ID Authentication
+        id: auth
+        if: steps.check.outputs.mode == 'existing'
+        env:
+          AUTH_CLIENT_ID: ${{ secrets.AUTH_CLIENT_ID }}
+          AUTH_AUTHORIZED_USERS: ${{ vars.AUTH_AUTHORIZED_USERS }}
+        run: |
+          set -euo pipefail
+
+          # -- Discover Web App --
+          WA_NAME=$(az webapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$WA_NAME" ]; then
+            echo "ERROR: No Web App found in ${{ env.RESOURCE_GROUP }}"
+            exit 1
+          fi
+
+          WEB_URL="https://$(az webapp show --name "$WA_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query defaultHostName -o tsv)"
+          REDIRECT_URI="${WEB_URL}/.auth/login/aad/callback"
+          TENANT_ID=$(az account show --query tenantId -o tsv)
+          CLIENT_ID="$AUTH_CLIENT_ID"
+
+          echo "Web App: $WA_NAME"
+          echo "URL: $WEB_URL"
+          echo "Tenant: $TENANT_ID"
+          echo "Using app registration: $CLIENT_ID"
+
+          # -- Update redirect URI on the app registration --
+          az ad app update --id "$CLIENT_ID" \
+            --web-redirect-uris "$REDIRECT_URI" 2>/dev/null || \
+            echo "WARNING: Could not update redirect URI (SP may lack Graph permission â€” update manually in Entra portal)"
+
+          # -- Configure EasyAuth on the Web App --
+          # --token-store true is REQUIRED so that /.auth/me returns the id_token,
+          # which the frontend forwards as a Bearer token to the backend API.
+          az webapp auth update \
+            --name "$WA_NAME" \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --enabled true \
+            --action LoginWithAzureActiveDirectory \
+            --aad-allowed-token-audiences "api://$CLIENT_ID" \
+            --aad-client-id "$CLIENT_ID" \
+            --aad-token-issuer-url "https://sts.windows.net/$TENANT_ID/" \
+            --token-store true \
+            --output none 2>/dev/null || {
+            echo "WARNING: Could not configure EasyAuth on Web App"
+            echo "You may need to configure authentication manually in the Azure Portal."
+            echo "Deployment succeeded â€” app is accessible at: $WEB_URL"
+            exit 0
+          }
+          echo "Frontend EasyAuth configured (redirect to login, token store enabled)"
+
+          # -- Backend API Auth (handled by FastAPI middleware, not EasyAuth) --
+          # Container Apps EasyAuth excludedPaths is unreliable, so auth validation
+          # is done at the application level in auth_middleware.py (EntraAuthMiddleware).
+          # The middleware validates Bearer tokens from the frontend on protected routes,
+          # while allowing /api/health, /docs, etc. through without auth.
+          # We only need to:
+          #   1. Ensure Container App EasyAuth is DISABLED (avoid double-auth)
+          #   2. Configure CORS at the ingress level for cross-origin requests
+          #   3. Pass tenant/client IDs as env vars for the FastAPI middleware
+          echo ""
+          echo "=== Configuring Backend Container App ==="
+          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv)
+          if [ -z "$CA_NAME" ]; then
+            echo "WARNING: No Container App found â€” skipping backend config"
+          else
+            echo "Container App: $CA_NAME"
+
+            # Disable Container Apps EasyAuth (auth is handled by FastAPI middleware)
+            az containerapp auth update \
+              --name "$CA_NAME" \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --enabled false \
+              --output none 2>/dev/null || {
+              echo "WARNING: Could not disable EasyAuth â€” may already be disabled"
+            }
+            echo "Container App EasyAuth disabled (auth handled by FastAPI middleware)"
+
+            # --------------------------------------------------------------
+            # Feature flag: dynamic collection selector (MCPProobjective.md).
+            # On dev we run in shadow mode -- the new CollectionIndex-based
+            # selector executes alongside the legacy SK pipeline, both picks
+            # are logged via log_pipeline_step("COLLECTION_SELECTOR","SHADOW"),
+            # and v1 stays authoritative. Production stays "off" until shadow
+            # logs are reviewed and the flag is manually flipped to "v2".
+            # --------------------------------------------------------------
+            # Single-env deploy: dynamic collection selector defaults to "off".
+            # Set repo var COLLECTION_SELECTOR_MODE=shadow to A/B-test alongside v1.
+            SELECTOR_MODE="${{ vars.COLLECTION_SELECTOR_MODE || 'off' }}"
+
+            # Set Entra ID + COLLECTION_SELECTOR env vars in ONE update call.
+            # Back-to-back `az containerapp update` calls race against the
+            # still-Provisioning revision from the prior call -- the second
+            # one fails with 409 Conflict, which `2>/dev/null` swallows.
+            # Merging them avoids the race AND avoids creating two revisions.
+            echo "Setting auth + COLLECTION_SELECTOR=$SELECTOR_MODE on $CA_NAME"
+            az containerapp update \
+              --name "$CA_NAME" \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --set-env-vars \
+                "AZURE_AD_TENANT_ID=$TENANT_ID" \
+                "AZURE_AD_CLIENT_ID=$CLIENT_ID" \
+                "COLLECTION_SELECTOR=$SELECTOR_MODE" \
+              --output none 2>/dev/null || {
+              echo "WARNING: Could not set auth + selector env vars on Container App"
+            }
+            echo "Env vars set (AZURE_AD_TENANT_ID, AZURE_AD_CLIENT_ID, COLLECTION_SELECTOR)"
+
+            BACKEND_URL="https://$(az containerapp show --name "$CA_NAME" --resource-group ${{ env.RESOURCE_GROUP }} --query 'properties.configuration.ingress.fqdn' -o tsv)"
+            echo "Backend URL: $BACKEND_URL"
+
+            # Configure CORS at the ingress level for cross-origin requests from the frontend
+            az containerapp ingress cors update \
+              --name "$CA_NAME" \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --allowed-origins "$WEB_URL" "https://localhost:5173" \
+              --allowed-methods "GET" "POST" "PUT" "DELETE" "OPTIONS" "PATCH" \
+              --allowed-headers "*" \
+              --allow-credentials true \
+              --expose-headers "*" \
+              --output none 2>/dev/null || {
+              echo "WARNING: Could not configure CORS on Container App ingress"
+            }
+            echo "Ingress CORS configured for frontend: $WEB_URL"
+          fi
+
+          # -- Ensure service principal exists (needed only for user-level restrictions) --
+          SP_ID=$(az ad sp show --id "$CLIENT_ID" --query id -o tsv 2>/dev/null || true)
+          if [ -z "$SP_ID" ]; then
+            SP_ID=$(az ad sp create --id "$CLIENT_ID" --query id -o tsv 2>/dev/null || true)
+            if [ -z "$SP_ID" ]; then
+              echo "WARNING: Could not find or create service principal for $CLIENT_ID"
+              echo "EasyAuth is enabled but user-level restrictions require manual SP setup."
+            fi
+            [ -n "$SP_ID" ] && echo "Created service principal: $SP_ID"
+          else
+            echo "Service principal exists: $SP_ID"
+          fi
+
+          # -- Restrict access to assigned users only (only when AUTH_AUTHORIZED_USERS is set) --
+          if [ -z "$AUTH_AUTHORIZED_USERS" ] || [ -z "$SP_ID" ]; then
+            if [ -z "$AUTH_AUTHORIZED_USERS" ]; then
+              echo "No AUTH_AUTHORIZED_USERS configured â€” all tenant users can access the app"
+            fi
+            # Don't set appRoleAssignmentRequired=true when no users are listed or no SP,
+            # otherwise everyone gets blocked (AADSTS50105).
+          else
+            az ad sp update --id "$SP_ID" --set appRoleAssignmentRequired=true 2>/dev/null || \
+              echo "WARNING: Could not set appRoleAssignmentRequired (SP may lack permission)"
+
+          # -- Assign authorized users --
+            ASSIGNED=0
+            SKIPPED=0
+            DEFAULT_ROLE_ID="00000000-0000-0000-0000-000000000000"
+
+            IFS=',' read -ra USERS <<< "$AUTH_AUTHORIZED_USERS"
+            for EMAIL in "${USERS[@]}"; do
+              EMAIL=$(echo "$EMAIL" | xargs)  # trim whitespace
+              [ -z "$EMAIL" ] && continue
+
+              USER_ID=$(az ad user show --id "$EMAIL" --query id -o tsv 2>/dev/null || true)
+              if [ -z "$USER_ID" ]; then
+                echo "WARNING: User not found: $EMAIL (not in tenant â€” invite as B2B guest first)"
+                continue
+              fi
+
+              # Check if already assigned
+              EXISTING=$(az rest --method GET \
+                --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$SP_ID/appRoleAssignedTo" \
+                --query "value[?principalId=='$USER_ID'] | length(@)" -o tsv 2>/dev/null || echo "0")
+
+              if [ "$EXISTING" != "0" ]; then
+                echo "Already assigned: $EMAIL"
+                SKIPPED=$((SKIPPED + 1))
+                continue
+              fi
+
+              az rest --method POST \
+                --uri "https://graph.microsoft.com/v1.0/servicePrincipals/$SP_ID/appRoleAssignedTo" \
+                --headers "Content-Type=application/json" \
+                --body "{\"principalId\": \"$USER_ID\", \"resourceId\": \"$SP_ID\", \"appRoleId\": \"$DEFAULT_ROLE_ID\"}" \
+                --output none 2>/dev/null || { echo "WARNING: Could not assign $EMAIL"; continue; }
+              echo "Assigned: $EMAIL"
+              ASSIGNED=$((ASSIGNED + 1))
+            done
+            echo "User assignment complete: $ASSIGNED new, $SKIPPED already assigned"
+          fi
+
+          echo ""
+          echo "Authentication configured successfully"
+          echo "URL: $WEB_URL"
+          echo "auth_configured=true" >> $GITHUB_OUTPUT
+
+  # Summary
+  summary:
+    name: Deployment Summary
+    needs: [detect-changes, deploy-infrastructure, deploy-backend, deploy-frontend, enable-agent-service, configure-auth]
+    if: always()
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - name: Azure Login
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Generate Summary
+        run: |
+          echo "# Planetary Explorer Deployment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## Components Deployed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "| Component | Changed | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|---------|--------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Infrastructure
+          if [ "${{ needs.detect-changes.outputs.infra }}" == "true" ]; then
+            if [ "${{ needs.deploy-infrastructure.result }}" == "success" ]; then
+              echo "| Infrastructure | Yes | Deployed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Infrastructure | Yes | Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "| Infrastructure | No | Skipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Backend
+          if [ "${{ needs.detect-changes.outputs.backend }}" == "true" ] || [ "${{ needs.detect-changes.outputs.infra }}" == "true" ]; then
+            if [ "${{ needs.deploy-backend.result }}" == "success" ]; then
+              echo "| Backend | Yes | Deployed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Backend | Yes | Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "| Backend | No | Skipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Frontend
+          if [ "${{ needs.detect-changes.outputs.frontend }}" == "true" ] || [ "${{ needs.detect-changes.outputs.infra }}" == "true" ]; then
+            if [ "${{ needs.deploy-frontend.result }}" == "success" ]; then
+              echo "| Frontend | Yes | Deployed |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| Frontend | Yes | Failed |" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "| Frontend | No | Skipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Discover actual resource names and URLs
+          WA_NAME=$(az webapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv 2>/dev/null || echo "")
+          CA_NAME=$(az containerapp list --resource-group ${{ env.RESOURCE_GROUP }} --query "[0].name" -o tsv 2>/dev/null || echo "")
+          
+          if [ -n "$WA_NAME" ]; then
+            WEB_URL=$(az webapp show --resource-group ${{ env.RESOURCE_GROUP }} --name "$WA_NAME" --query "defaultHostName" -o tsv)
+            echo "- **Frontend**: https://$WEB_URL" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Frontend**: Not deployed yet" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ -n "$CA_NAME" ]; then
+            CA_URL=$(az containerapp show --resource-group ${{ env.RESOURCE_GROUP }} --name "$CA_NAME" --query "properties.configuration.ingress.fqdn" -o tsv)
+            echo "- **Backend API**: https://$CA_URL" >> $GITHUB_STEP_SUMMARY
+            echo "- **API Docs**: https://$CA_URL/docs" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Backend**: Not deployed yet" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Authentication" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.configure-auth.outputs.auth_configured }}" == "true" ]; then
+            echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+            echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Mode | Microsoft Entra ID (Single Tenant) |" >> $GITHUB_STEP_SUMMARY
+            echo "| Access | Restricted to assigned users |" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.configure-auth.result }}" == "skipped" ]; then
+            echo "Auth was explicitly disabled. To enable, re-run without **disable_auth** or set \`AUTH_CLIENT_ID\` secret." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Auth not configured â€” check workflow logs for instructions on enabling authentication." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Agent Service (GEOINT)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.enable-agent-service.outputs.agent_service_enabled }}" == "true" ]; then
+            echo "Agent Service enabled â€” all GEOINT agents (Vision, Terrain, Mobility, Building Damage, Comparison, Extreme Weather) are ready." >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.enable-agent-service.result }}" == "skipped" ]; then
+            echo "Agent Service skipped (backend did not deploy). Run the workflow with \`force_all\` to enable." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Agent Service enablement failed â€” GEOINT agents will not function. Check workflow logs or run manually: \`./scripts/enable-agent-service.ps1\`" >> $GITHUB_STEP_SUMMARY
+          fi

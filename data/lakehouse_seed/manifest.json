@@ -1,0 +1,25 @@
+{
+  "power_infrastructure": {
+    "status": "ok",
+    "rows": 95109,
+    "columns": [
+      "asset_id",
+      "type",
+      "name",
+      "state",
+      "county",
+      "voltage_kv",
+      "capacity_mw",
+      "status",
+      "latitude",
+      "longitude",
+      "owner_utility",
+      "source_dataset",
+      "source_url",
+      "source_authority",
+      "retrieval_date"
+    ],
+    "path": "data/lakehouse_seed/power_infrastructure.parquet",
+    "size_bytes": 2771320
+  }
+}

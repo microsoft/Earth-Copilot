@@ -1,0 +1,22 @@
+[
+  { "src_facility_id": "tx-fab-austin-01", "dst_facility_id": "tx-asm-san-antonio-01", "kind": "wafers",           "lead_time_days": 2, "weekly_volume": 1.0 },
+  { "src_facility_id": "tx-fab-austin-02", "dst_facility_id": "tx-asm-san-antonio-01", "kind": "wafers",           "lead_time_days": 2, "weekly_volume": 0.8 },
+  { "src_facility_id": "tx-sub-waco-01",   "dst_facility_id": "tx-asm-san-antonio-01", "kind": "sub_assemblies",   "lead_time_days": 1, "weekly_volume": 1.0 },
+  { "src_facility_id": "tx-asm-san-antonio-01", "dst_facility_id": "tx-pkg-elpaso-01", "kind": "assembled_units",  "lead_time_days": 2, "weekly_volume": 0.9 },
+  { "src_facility_id": "tx-pkg-elpaso-01", "dst_facility_id": "tx-dc-dallas-01",       "kind": "finished_goods",   "lead_time_days": 2, "weekly_volume": 0.6 },
+  { "src_facility_id": "tx-pkg-elpaso-01", "dst_facility_id": "tx-dc-houston-01",      "kind": "finished_goods",   "lead_time_days": 3, "weekly_volume": 0.4 },
+  { "src_facility_id": "tx-pkg-elpaso-01", "dst_facility_id": "tx-dc-corpus-01",       "kind": "finished_goods",   "lead_time_days": 3, "weekly_volume": 0.3 },
+  { "src_facility_id": "tx-dc-dallas-01",  "dst_facility_id": "tx-log-lubbock-01",     "kind": "transshipment",    "lead_time_days": 1, "weekly_volume": 0.5 },
+  { "src_facility_id": "tx-log-lubbock-01","dst_facility_id": "tx-dc-houston-01",      "kind": "transshipment",    "lead_time_days": 2, "weekly_volume": 0.3 },
+  { "src_facility_id": "tx-rd-austin-01",  "dst_facility_id": "tx-fab-austin-01",      "kind": "process_recipes",  "lead_time_days": 0, "weekly_volume": 1.0 },
+  { "src_facility_id": "tx-rd-austin-01",  "dst_facility_id": "tx-fab-austin-02",      "kind": "process_recipes",  "lead_time_days": 0, "weekly_volume": 1.0 },
+  { "src_facility_id": "tx-fab-austin-01", "dst_facility_id": "tx-fab-austin-02",      "kind": "shared_utilities", "lead_time_days": 0, "weekly_volume": 1.0 },
+  { "src_facility_id": "tx-asm-san-antonio-01", "dst_facility_id": "tx-dc-houston-01", "kind": "finished_goods",   "lead_time_days": 1, "weekly_volume": 0.5 },
+  { "src_facility_id": "tx-asm-san-antonio-01", "dst_facility_id": "tx-dc-corpus-01",  "kind": "finished_goods",   "lead_time_days": 2, "weekly_volume": 0.3 },
+  { "src_facility_id": "tx-dc-houston-01", "dst_facility_id": "tx-dc-corpus-01",       "kind": "transshipment",    "lead_time_days": 1, "weekly_volume": 0.2 },
+  { "src_facility_id": "tx-sub-waco-01",   "dst_facility_id": "tx-pkg-elpaso-01",      "kind": "sub_assemblies",   "lead_time_days": 2, "weekly_volume": 0.4 },
+  { "src_facility_id": "tx-fab-austin-01", "dst_facility_id": "tx-rd-austin-01",       "kind": "test_wafers",      "lead_time_days": 0, "weekly_volume": 0.3 },
+  { "src_facility_id": "tx-dc-dallas-01",  "dst_facility_id": "tx-pkg-elpaso-01",      "kind": "consumables",      "lead_time_days": 2, "weekly_volume": 0.2 },
+  { "src_facility_id": "tx-dc-houston-01", "dst_facility_id": "tx-asm-san-antonio-01", "kind": "consumables",      "lead_time_days": 1, "weekly_volume": 0.4 },
+  { "src_facility_id": "tx-dc-corpus-01",  "dst_facility_id": "tx-log-lubbock-01",     "kind": "transshipment",    "lead_time_days": 3, "weekly_volume": 0.2 }
+]

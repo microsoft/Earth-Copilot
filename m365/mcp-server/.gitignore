@@ -1,0 +1,6 @@
+.venv/
+.env
+mcp-server.log
+__pycache__/
+*.egg-info/
+.pytest_cache/

@@ -1,0 +1,45 @@
+{
+  "name": "geocatalog-mcp-server",
+  "version": "1.0.9",
+  "description": "GeoCatalog STAC MCP Server - TypeScript implementation",
+  "type": "module",
+  "main": "dist/server_main.js",
+  "bin": {
+    "geocatalog-mcp-server": "dist/server_main.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "bundle": "node esbuild.js --production",
+    "check-types": "tsc --noEmit",
+    "watch": "tsc --watch",
+    "start": "node dist/server_main.js",
+    "clean": "node -e \"require('fs').rmSync('dist', {recursive: true, force: true})\""
+  },
+  "keywords": [
+    "mcp",
+    "stac",
+    "geocatalog",
+    "geospatial"
+  ],
+  "author": "Microsoft Planetary Computer",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/identity": "^4.0.0",
+    "@azure/storage-blob": "^12.24.0",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "axios": "^1.15.0",
+    "commander": "^12.1.0",
+    "form-data": "^4.0.5",
+    "geotiff": "^2.1.3",
+    "jimp": "^1.6.1",
+    "proj4": "^2.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.5",
+    "esbuild": "^0.25.10",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,315 @@
+openapi: 3.0.3
+info:
+  title: Planetary Explorer — Resilience API
+  description: |
+    Subset of the Planetary Explorer container-app API exposed to the M365 declarative
+    agent. Only the resilience-related endpoints are surfaced here; the broader
+    Planetary Explorer API (STAC search, geoint, tiles) is intentionally **not**
+    declared so the agent's tool surface stays narrow and auditable.
+
+    All endpoints require an Entra ID Bearer token in the `Authorization` header.
+    The token is acquired by M365 Copilot using the OAuth client registered for
+    this plugin (`{{OAUTH_CLIENT_REGISTRATION_ID}}`) and is exchanged for a
+    Fabric token via on-behalf-of inside the container app, so Fabric row-level
+    security is honored as the calling user.
+  version: 1.0.0
+  contact:
+    name: Planetary Explorer Team
+    url: https://{{APP_DOMAIN}}
+servers:
+  - url: https://{{API_BASE_URL}}
+    description: Planetary Explorer backend
+security:
+  - EntraOAuth2:
+      - access_as_user
+paths:
+  /api/resilience/health:
+    get:
+      operationId: getResilienceHealth
+      summary: Resilience subsystem readiness probe
+      description: Returns whether the resilience workflow is enabled, whether the agent framework is loaded, and whether Fabric is configured. Safe to call without a user token.
+      security: []
+      responses:
+        "200":
+          description: Health payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /api/resilience/facilities:
+    get:
+      operationId: listFacilities
+      summary: List facilities visible to the caller
+      description: Lightweight facility-registry read. Returns the rows the user can see in Fabric (row-level security applied), plus the 1-hop supply edges.
+      parameters:
+        - name: region
+          in: query
+          required: false
+          description: Optional region filter (e.g. `TX`). Omit to list everything visible.
+          schema:
+            type: string
+            maxLength: 32
+      responses:
+        "200":
+          description: Facility registry
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FacilitiesResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+  /api/resilience/assess:
+    post:
+      operationId: assessResilience
+      summary: Run a resilience assessment
+      description: |
+        Executes the resilience MAF workflow over the user's facility registry,
+        fusing live weather + supply graph + business-continuity context.
+        Returns one dossier per facility, ranked by severity.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssessRequest"
+      responses:
+        "200":
+          description: Assessment dossier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssessResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "502":
+          description: Upstream error (weather, Fabric, or workflow failure)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "503":
+          $ref: "#/components/responses/Unavailable"
+  /api/resilience/snapshot:
+    get:
+      operationId: getResilienceSnapshot
+      summary: Static PNG map of an assessment
+      description: |
+        Renders a static PNG (1024×768) showing the assessed facilities color-
+        coded by severity. Suitable for inline display in an adaptive card.
+        The `assessment_id` is returned in the body of `assessResilience`.
+      parameters:
+        - name: assessment_id
+          in: query
+          required: true
+          description: Assessment id returned by `assessResilience`.
+          schema:
+            type: string
+            format: uuid
+        - name: width
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 256
+            maximum: 2048
+            default: 1024
+        - name: height
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 256
+            maximum: 2048
+            default: 768
+      responses:
+        "200":
+          description: PNG image of the assessment map
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Assessment id not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  securitySchemes:
+    EntraOAuth2:
+      type: oauth2
+      description: Microsoft Entra ID OAuth 2.0 (authorization code + PKCE)
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/{{TENANT_ID}}/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/{{TENANT_ID}}/oauth2/v2.0/token
+          scopes:
+            access_as_user: Sign in and access Planetary Explorer Resilience on your behalf
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unavailable:
+      description: Resilience subsystem not configured or temporarily unavailable
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Error:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+          description: Human-readable error description.
+    HealthResponse:
+      type: object
+      required: [enabled, status]
+      properties:
+        enabled:
+          type: boolean
+        status:
+          type: string
+          enum: [ready, unavailable]
+        agent_framework_available:
+          type: boolean
+        fabric_workspace_configured:
+          type: boolean
+        fabric_lakehouse_configured:
+          type: boolean
+        ai_search_configured:
+          type: boolean
+    Facility:
+      type: object
+      required: [facility_id, name, lat, lng]
+      properties:
+        facility_id: { type: string }
+        name: { type: string }
+        lat: { type: number, format: float, minimum: -90, maximum: 90 }
+        lng: { type: number, format: float, minimum: -180, maximum: 180 }
+        type: { type: string, description: "e.g. fab, assembly, datacenter, packaging, rnd" }
+        region: { type: string }
+        criticality: { type: string, enum: [low, medium, high, critical] }
+    SupplyEdge:
+      type: object
+      properties:
+        src_facility_id: { type: string }
+        dst_facility_id: { type: string }
+        kind: { type: string }
+        lead_time_days: { type: integer, minimum: 0 }
+    FacilitiesResponse:
+      type: object
+      properties:
+        facilities:
+          type: array
+          items: { $ref: "#/components/schemas/Facility" }
+        supply_edges:
+          type: array
+          items: { $ref: "#/components/schemas/SupplyEdge" }
+        data_source:
+          type: string
+          enum: [fabric, seed]
+        region_filter:
+          type: string
+          nullable: true
+    AssessRequest:
+      type: object
+      properties:
+        region_filter:
+          type: string
+          description: Optional region filter, e.g. `TX`. Omit to assess all visible facilities.
+          maxLength: 32
+        horizon_days:
+          type: integer
+          minimum: 1
+          maximum: 14
+          default: 7
+        hazards:
+          type: array
+          items:
+            type: string
+            enum: [heat, wildfire]
+          uniqueItems: true
+          description: Subset of supported hazards. Omit to run all.
+        user_query:
+          type: string
+          maxLength: 500
+          description: Optional natural-language ask for context-grounding.
+    DimensionScore:
+      type: object
+      properties:
+        score: { type: number, format: float, minimum: 0, maximum: 100 }
+        severity: { type: string, enum: [low, moderate, high, severe] }
+        peak_value: { type: number, format: float, nullable: true }
+        peak_day: { type: string, format: date, nullable: true }
+        summary: { type: string }
+        drivers:
+          type: array
+          items: { type: string }
+    FacilityDossier:
+      type: object
+      required: [facility_id, name, overall_score, severity]
+      properties:
+        facility_id: { type: string }
+        name: { type: string }
+        lat: { type: number }
+        lng: { type: number }
+        overall_score: { type: number, format: float, minimum: 0, maximum: 100 }
+        severity: { type: string, enum: [low, moderate, high, severe] }
+        dimensions:
+          type: object
+          additionalProperties: { $ref: "#/components/schemas/DimensionScore" }
+        impacted_by:
+          type: array
+          items:
+            type: object
+            properties:
+              src_id: { type: string }
+              hazard: { type: string }
+              score: { type: number }
+              edge_kind: { type: string }
+              lead_time_days: { type: integer }
+        deep_link:
+          type: string
+          format: uri
+          description: URL into the Planetary Explorer web UI scoped to this facility.
+    Provenance:
+      type: object
+      properties:
+        source: { type: string }
+        ref: { type: string }
+        retrieved_at: { type: string, format: date-time }
+    AssessResponse:
+      type: object
+      required: [assessment_id, facilities]
+      properties:
+        assessment_id:
+          type: string
+          format: uuid
+          description: Stable id for follow-up calls (e.g. `getResilienceSnapshot`).
+        generated_at:
+          type: string
+          format: date-time
+        horizon_days: { type: integer }
+        hazards:
+          type: array
+          items: { type: string }
+        region_filter:
+          type: string
+          nullable: true
+        facilities:
+          type: array
+          items: { $ref: "#/components/schemas/FacilityDossier" }
+        data_provenance:
+          type: array
+          items: { $ref: "#/components/schemas/Provenance" }

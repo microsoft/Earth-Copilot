@@ -1,0 +1,125 @@
+/* Microsoft Fabric sidebar card */
+.fabric-card {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #e6e6e6;
+}
+
+.fabric-card--muted {
+  opacity: 0.7;
+}
+
+.fabric-card__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.fabric-card__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  margin: 10px 0 4px;
+}
+
+.fabric-card__hint {
+  font-size: 12px;
+  opacity: 0.75;
+  line-height: 1.4;
+}
+
+.fabric-card__hint code {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.fabric-card__error {
+  background: rgba(255, 80, 80, 0.12);
+  border: 1px solid rgba(255, 80, 80, 0.3);
+  color: #ffb3b3;
+  padding: 6px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.fabric-card__action {
+  width: 100%;
+  padding: 8px 10px;
+  background: #0078d4;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.fabric-card__action:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.fabric-card__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.fabric-card__list li {
+  margin: 2px 0;
+}
+
+.fabric-card__list button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: inherit;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.fabric-card__list button:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.fabric-card__chip {
+  position: relative;
+  background: rgba(0, 120, 212, 0.15);
+  border: 1px solid rgba(0, 120, 212, 0.4);
+  padding: 6px 24px 6px 8px;
+  border-radius: 4px;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.fabric-card__chip--success {
+  background: rgba(70, 180, 90, 0.15);
+  border-color: rgba(70, 180, 90, 0.4);
+}
+
+.fabric-card__chip-x {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.fabric-card__chip-x:hover {
+  opacity: 1;
+}

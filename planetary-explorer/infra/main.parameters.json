@@ -1,0 +1,87 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "planetaryexplorer"
+    },
+    "location": {
+      "value": "eastus2"
+    },
+    "cloudEnvironment": {
+      "value": "Commercial"
+    },
+    "containerImage": {
+      "value": ""
+    },
+    "deployAIFoundry": {
+      "value": true
+    },
+    "deployBotService": {
+      "value": false
+    },
+    "enableAuthentication": {
+      "value": false
+    },
+    "microsoftEntraClientId": {
+      "value": ""
+    },
+    "microsoftEntraTenantId": {
+      "value": ""
+    },
+    "microsoftEntraClientSecret": {
+      "value": ""
+    },
+    "acrAgentPoolName": {
+      "value": "buildpool"
+    },
+    "acrAgentPoolCount": {
+      "value": 1
+    },
+    "enableFabric": {
+      "value": false
+    },
+    "deployFabricCapacity": {
+      "value": false
+    },
+    "fabricCapacityResourceId": {
+      "value": ""
+    },
+    "fabricWorkspaceId": {
+      "value": ""
+    },
+    "fabricLakehouseId": {
+      "value": ""
+    },
+    "enableMpcPro": {
+      "value": true
+    },
+    "mpcProStacUrl": {
+      "value": "https://geocatalog.fkhhedbmf4h2awht.northcentralus.geocatalog.spatio.azure.com/stac"
+    },
+    "enablePrivateEndpoints": {
+      "value": false
+    },
+    "deployWeatherStub": {
+      "value": false
+    },
+    "weatherStubImageName": {
+      "value": "planetary-explorer-weather-stub:latest"
+    },
+    "auroraEndpointUrl": {
+      "value": "https://ca-weather-providers.ambitiousriver-87c5af8f.centralus.azurecontainerapps.io"
+    },
+    "earth2FcnEndpointUrl": {
+      "value": "https://ca-weather-providers.ambitiousriver-87c5af8f.centralus.azurecontainerapps.io"
+    },
+    "maiWeatherEndpointUrl": {
+      "value": "https://ca-weather-providers.ambitiousriver-87c5af8f.centralus.azurecontainerapps.io"
+    },
+    "maiWeatherScorePath": {
+      "value": "/mai-weather/score"
+    },
+    "forecastAgentEnabled": {
+      "value": true
+    }
+  }
+}

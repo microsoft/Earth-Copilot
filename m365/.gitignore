@@ -1,0 +1,6 @@
+# Build artifacts
+build/
+dist/
+
+# Local env file (contains tenant + client ids — never commit)
+build.env

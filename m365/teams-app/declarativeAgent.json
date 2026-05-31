@@ -1,0 +1,36 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/declarative-agent/v1.4/schema.json",
+  "version": "v1.4",
+  "name": "Planetary Explorer — Resilience",
+  "description": "Operational resilience dossiers fusing weather, supply graph, and Fabric facility data. Ask which facilities are at risk and why — get scored, evidence-grounded answers.",
+  "instructions": "$[file('instructions.md')]",
+  "conversation_starters": [
+    {
+      "title": "TX heat dome risk this week",
+      "text": "Which of our Texas facilities are at risk from the heat dome over the next 7 days?"
+    },
+    {
+      "title": "Wildfire smoke exposure",
+      "text": "Show wildfire and smoke risk across all facilities for the next 10 days, ranked by criticality."
+    },
+    {
+      "title": "Supply blast-radius",
+      "text": "If our Austin fab goes offline this weekend due to heat, which downstream facilities are affected?"
+    },
+    {
+      "title": "List facilities",
+      "text": "What facilities do I have access to in the resilience registry?"
+    }
+  ],
+  "actions": [
+    {
+      "id": "planetary-explorer-resilience-api",
+      "file": "plugin/ai-plugin.json"
+    }
+  ],
+  "capabilities": [
+    {
+      "name": "WebSearch"
+    }
+  ]
+}

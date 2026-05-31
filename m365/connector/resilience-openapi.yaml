@@ -1,0 +1,30 @@
+swagger: '2.0'
+info:
+  title: Planetary Explorer Resilience
+  description: MCP server exposing resilience tools (assess facilities for heat and wildfire risk, list facilities, snapshot maps, health) grounded in live weather and the user's facility registry.
+  version: 1.0.0
+host: <your-tunnel>-8765.use.devtunnels.ms
+basePath: /
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /mcp:
+    post:
+      summary: Planetary Explorer Resilience
+      description: Streamable MCP endpoint exposing the Planetary Explorer Resilience tools.
+      operationId: InvokeServer
+      x-ms-agentic-protocol: mcp-streamable-1.0
+      responses:
+        '200':
+          description: Immediate Response
+securityDefinitions:
+  api_key:
+    type: apiKey
+    in: header
+    name: Authorization
+security:
+  - api_key: []
