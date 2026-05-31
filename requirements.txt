@@ -1,0 +1,22 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Planetary Explorer — root requirements (dev / contributor tooling only)
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# Runtime dependencies live per-service:
+#
+#   Container App (FastAPI backend):  planetary-explorer/container-app/requirements.txt
+#   MCP server (stdio bridge):        planetary-explorer/mcp-server/requirements.txt
+#   AI Search indexer scripts:        planetary-explorer/ai-search/scripts/requirements.txt
+#   Weather stub server:              planetary-explorer/weather-stub-server/requirements.txt
+#   M365 MCP server (pyproject):      m365/mcp-server/pyproject.toml
+#
+# Web UI dependencies are in planetary-explorer/web-ui/package.json.
+#
+# This file installs lint/format/test tooling used across all Python services
+# so a contributor can run `pip install -r requirements.txt` once at the repo
+# root and get a working dev environment.
+
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+black>=23.0.0
+ruff>=0.4.0

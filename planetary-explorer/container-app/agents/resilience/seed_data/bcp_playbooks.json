@@ -1,0 +1,108 @@
+[
+  {
+    "playbook_id": "heat-dome-tx-2026",
+    "title": "Heat Dome Business Continuity Playbook \u2014 Texas Operations",
+    "hazards": ["heat"],
+    "region": "TX",
+    "facility_hint": ["tx-fab-austin-01", "tx-fab-austin-02", "tx-asm-sanantonio-01", "tx-rd-austin-01", "tx-asm-waco-01", "tx-dc-dallas-01", "tx-dc-houston-01", "tx-dc-corpus-01", "tx-pkg-elpaso-01", "tx-log-lubbock-01"],
+    "owner": "Global Operations Resilience Team",
+    "last_reviewed": "2026-04",
+    "trigger": "Forecast: T\u2095\u2090\u2093 \u2265 100 \u00b0F for 3+ consecutive days AND ERCOT Conservation Appeal/EEA AND cooling-tower approach > 8 \u00b0F above design.",
+    "tier1_actions": [
+      "Cleanroom fabs (Austin Fab 1/2): pre-cool process water reservoirs overnight; shift non-critical maintenance to overnight; defer wafer starts needing extra cooling-tower capacity.",
+      "Assembly & sub-assembly (San Antonio, Waco): reduce ambient setpoints by 2 \u00b0F in reflow-oven test floors; stage +1-shift sub-assembly buffer to absorb upstream delay.",
+      "Distribution / logistics (Dallas, Houston, Corpus, Lubbock): move outdoor loading to 04:00\u201310:00; verify reefer container fuel reserves at Houston port docks."
+    ],
+    "tier2_actions": [
+      "Curtail Austin Fab 2 non-critical production lines by 15% at ERCOT EEA-2.",
+      "Shift R&D campus to remote work; close auxiliary HVAC zones.",
+      "Activate mutual aid agreement with Phoenix backup distribution."
+    ],
+    "stand_down": "24 hours after ERCOT alert clears AND forecast highs drop below 95 \u00b0F for 48 hours. Lessons-learned within 5 business days; playbook update within 30 days.",
+    "summary": "Tier-1 actions trigger when forecast \u2265100 \u00b0F for 3+ days + ERCOT alert + cooling-tower approach >8 \u00b0F above design. Pre-cool reservoirs, defer wafer starts, raise setpoints, move outdoor loading to early-morning. Tier-2 (EEA-2+) curtails Austin Fab 2 by 15% and activates Phoenix mutual aid."
+  },
+  {
+    "playbook_id": "austin-fab-cooling-tower-ops",
+    "title": "Austin Fab Cooling Tower Operations \u2014 Heat Event SOP",
+    "hazards": ["heat"],
+    "region": "TX",
+    "facility_hint": ["tx-fab-austin-01", "tx-fab-austin-02"],
+    "owner": "Austin Site Facilities",
+    "last_reviewed": "2026-03",
+    "trigger": "Wet-bulb temperature forecast \u2265 80 \u00b0F OR cooling-tower approach trending >6 \u00b0F above design.",
+    "tier1_actions": [
+      "Switch evaporator fans to high before peak afternoon load.",
+      "Bias process chiller setpoint up 1 \u00b0F to widen approach margin (validated for nodes \u226528 nm).",
+      "Verify make-up water tank levels \u2265 80%; refill from rainwater cistern overnight if available."
+    ],
+    "tier2_actions": [
+      "Stage portable chilled-water trailers at Fab 2 loading dock if approach exceeds 10 \u00b0F.",
+      "Coordinate with City of Austin Water on emergency make-up rate; daily check-in with utility liaison."
+    ],
+    "stand_down": "Approach returns within 4 \u00b0F of design for 24 hours; trailers demobilized after 48 hours of normal operation.",
+    "summary": "Cooling-tower SOP: fans-high pre-peak, +1 \u00b0F chiller setpoint, verify make-up water \u226580%. Stage portable trailers if approach > 10 \u00b0F. Coordinate emergency make-up with Austin Water."
+  },
+  {
+    "playbook_id": "wildfire-west-texas-logistics",
+    "title": "Wildfire / Smoke Response \u2014 West Texas Logistics",
+    "hazards": ["wildfire"],
+    "region": "TX",
+    "facility_hint": ["tx-pkg-elpaso-01", "tx-log-lubbock-01", "tx-asm-waco-01"],
+    "owner": "West Texas Operations",
+    "last_reviewed": "2026-02",
+    "trigger": "Forecast PM2.5 \u2265 35 \u00b5g/m\u00b3 OR US AQI \u2265 150 OR active fire perimeter within 25 mi.",
+    "tier1_actions": [
+      "Distribute N95 respirators to outdoor workers; relocate breakroom outdoors-access tasks indoors.",
+      "Switch building HVAC to maximum filtration (MERV-13+); seal exterior dock doors when idle.",
+      "Reroute long-haul outbound from I-20/I-10 corridor through alternate northern route via Lubbock."
+    ],
+    "tier2_actions": [
+      "Suspend outdoor packaging operations at El Paso if PM2.5 \u2265 55 \u00b5g/m\u00b3.",
+      "Activate shelter-in-place for Lubbock logistics if active fire within 10 mi."
+    ],
+    "stand_down": "PM2.5 < 12 \u00b5g/m\u00b3 sustained for 12 hours and no active fire within 25 mi.",
+    "summary": "Wildfire SOP for West TX: N95s + MERV-13 HVAC + sealed docks. Reroute long-haul off I-20/I-10 when smoky. Suspend El Paso outdoor packaging at PM2.5 \u2265 55. Shelter-in-place threshold: fire within 10 mi of Lubbock."
+  },
+  {
+    "playbook_id": "supply-chain-wafer-flow",
+    "title": "Wafer Flow Supply-Chain Continuity",
+    "hazards": ["heat", "wildfire"],
+    "region": "TX",
+    "facility_hint": ["tx-fab-austin-01", "tx-fab-austin-02", "tx-asm-sanantonio-01", "tx-asm-waco-01", "tx-pkg-elpaso-01"],
+    "owner": "Supply Chain Resilience",
+    "last_reviewed": "2026-04",
+    "trigger": "Austin Fab 1 or Fab 2 forecast to drop wafer starts \u226515% for 3+ days OR El Paso packaging projected offline \u226548 hours.",
+    "tier1_actions": [
+      "Front-load San Antonio test floor with +12 hours of WIP inventory.",
+      "Hold Waco sub-assembly to standard tact until upstream recovery confirmed (avoid stranded WIP).",
+      "Notify Tier-1 customers of potential 5-7 day lead-time slip on AI accelerator SKUs."
+    ],
+    "tier2_actions": [
+      "Activate alternate packaging at Phoenix facility for highest-margin SKUs.",
+      "Air-freight critical lots San Antonio \u2192 El Paso when ground transit at risk."
+    ],
+    "stand_down": "Austin fabs running at \u226595% nominal wafer starts AND El Paso packaging back at full capacity.",
+    "summary": "Wafer-flow continuity: pre-stage +12h WIP at San Antonio test, hold Waco sub-assembly at standard tact, notify Tier-1 customers of 5-7d slip. Tier-2: Phoenix alt-packaging + air freight for critical lots."
+  },
+  {
+    "playbook_id": "houston-port-distribution",
+    "title": "Houston Port Distribution Center Continuity",
+    "hazards": ["heat", "wildfire", "hurricane"],
+    "region": "TX",
+    "facility_hint": ["tx-dc-houston-01", "tx-dc-corpus-01", "tx-dc-dallas-01"],
+    "owner": "Gulf Coast Distribution",
+    "last_reviewed": "2026-01",
+    "trigger": "Houston DC offline \u2265 24 hours OR Port of Houston closure OR reefer power loss \u22653 hours.",
+    "tier1_actions": [
+      "Reroute Asia-Pacific inbound containers to Port of Corpus Christi DC.",
+      "Stand up Dallas DC as overflow hub for domestic outbound; pre-stage drivers.",
+      "Notify reefer monitoring service to dispatch backup gensets within 90 minutes of power loss."
+    ],
+    "tier2_actions": [
+      "Coordinate with Port Authority on priority berth allocation when reopening.",
+      "Activate freight forwarder air-cargo contracts for time-sensitive lots."
+    ],
+    "stand_down": "Houston DC restored to \u226590% throughput AND inbound queue \u2264 24 hours of normal volume.",
+    "summary": "Houston port disruption: reroute APAC inbound to Corpus Christi DC, stand up Dallas as domestic overflow, deploy backup reefer gensets in <90 min. Tier-2: priority berth coordination, air-cargo activation for time-critical lots."
+  }
+]

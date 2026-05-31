@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/refs/heads/main/schemas/v1.0/azure.yaml.json
+#
+# Root-level azd manifest so a forker can clone this repo and run
+# ``azd up`` from the repo root without having to ``cd planetary-explorer``
+# first. All paths below resolve relative to this file. The canonical
+# manifest still lives at planetary-explorer/azure.yaml for in-tree work;
+# both keep service definitions in sync.
+#
+# Quick deploy for a forked OSS clone:
+#   azd auth login
+#   azd init           # picks this manifest, prompts for env name
+#   azd up             # provisions infra + builds + deploys
+#
+# Default toggles (off by default, billed-resource-friendly):
+#   - enableFabric           = false   (no Fabric capacity created)
+#   - deployFabricCapacity   = false   (would be F2 ~ $262/mo)
+#   - enableMpcPro           = false   (UI shows locked "How to enable" link)
+#   - deployMpcMcp           = false   (no MPC Pro MCP sidecar)
+#   - enablePrivateEndpoints = false   (public endpoints + Entra auth in-app)
+#
+# Flip any of these via:  azd env set <PARAM_NAME> true
+# Then re-run:           azd provision
+
+name: planetary-explorer
+metadata:
+  template: planetary-explorer@2.0.0
+
+infra:
+  provider: bicep
+  path: planetary-explorer/infra
+  module: main
+
+services:
+  web:
+    project: ./planetary-explorer/web-ui
+    host: appservice
+    language: js
+
+  api:
+    project: ./planetary-explorer/container-app
+    host: containerapp
+    language: python

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.2/schema.json",
+  "schema_version": "v2.2",
+  "name_for_human": "Planetary Explorer — Resilience",
+  "description_for_human": "Per-facility climate + supply risk dossiers grounded in your Fabric Lakehouse.",
+  "description_for_model": "Use this plugin to assess operational resilience of the user's facilities against weather hazards (heat, wildfire) and a 1-hop supply graph. Tools: assessResilience runs the full per-facility scoring workflow and returns a dossier with scores, drivers, evidence, and citations. listFacilities returns the facility registry the user has access to. getResilienceSnapshot returns a static PNG map of an existing assessment. getResilienceHealth is a lightweight readiness probe.",
+  "namespace": "planetaryexplorer_resilience",
+  "capabilities": {
+    "localization": {},
+    "conversation_starters": [
+      { "text": "Which TX facilities are at risk this week?" },
+      { "text": "Show wildfire risk for all my sites over the next 10 days." }
+    ]
+  },
+  "functions": [
+    {
+      "name": "assessResilience",
+      "description": "Run a per-facility resilience assessment across the user's accessible facility registry, fusing weather + supply graph + business-continuity playbook context. Returns scored dossiers.",
+      "capabilities": {
+        "response_semantics": {
+          "data_path": "$.facilities",
+          "properties": {
+            "title": "$.name",
+            "subtitle": "$.severity",
+            "url": "$.deep_link"
+          },
+          "static_template": {
+            "file": "../docs/adaptive-cards/resilience-dossier.json"
+          }
+        }
+      }
+    },
+    {
+      "name": "listFacilities",
+      "description": "List the facilities the current user has access to in the resilience registry. Lightweight; runs no weather or supply queries."
+    },
+    {
+      "name": "getResilienceSnapshot",
+      "description": "Fetch a static PNG map for an assessment id, suitable for inline display in adaptive cards."
+    },
+    {
+      "name": "getResilienceHealth",
+      "description": "Readiness probe for the resilience subsystem. Returns whether the agent is configured and reachable."
+    }
+  ],
+  "runtimes": [
+    {
+      "type": "OpenApi",
+      "auth": {
+        "type": "OAuthPluginVault",
+        "reference_id": "{{OAUTH_CLIENT_REGISTRATION_ID}}"
+      },
+      "spec": {
+        "url": "openapi.yaml",
+        "progress_style": "ShowUsageWithInputAndOutput"
+      },
+      "run_for_functions": [
+        "assessResilience",
+        "listFacilities",
+        "getResilienceSnapshot",
+        "getResilienceHealth"
+      ]
+    }
+  ]
+}

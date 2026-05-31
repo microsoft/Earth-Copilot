@@ -1,0 +1,19 @@
+{
+    "azureFunctions.deploySubpath": "planetary-explorer\\router-function-app",
+    "azureFunctions.scmDoBuildDuringDeployment": true,
+    "azureFunctions.pythonVenv": ".venv",
+    "azureFunctions.projectLanguage": "Python",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen",
+    "github.copilot.advanced": {
+        "mcpServers": {
+            "planetary-explorer": {
+                "type": "http",
+                "url": "https://<your-mcp-host>.azurecontainerapps.io",
+                "headers": {
+                    "Content-Type": "application/json"
+                }
+            }
+        }
+    }
+}

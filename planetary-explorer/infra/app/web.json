@@ -1,0 +1,132 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.39.26.7824",
+      "templateHash": "631304718919778438"
+    }
+  },
+  "parameters": {
+    "name": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {}
+    },
+    "applicationInsightsName": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "containerAppsEnvironmentName": {
+      "type": "string"
+    },
+    "containerRegistryName": {
+      "type": "string"
+    },
+    "imageName": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "azureOpenAiApiKey": {
+      "type": "securestring",
+      "defaultValue": ""
+    },
+    "azureOpenAiEndpoint": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "openAiApiKey": {
+      "type": "securestring",
+      "defaultValue": ""
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2023-05-01",
+      "name": "[parameters('name')]",
+      "location": "[parameters('location')]",
+      "tags": "[union(parameters('tags'), createObject('azd-service-name', 'web'))]",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "managedEnvironmentId": "[resourceId('Microsoft.App/managedEnvironments', parameters('containerAppsEnvironmentName'))]",
+        "configuration": {
+          "ingress": {
+            "external": true,
+            "targetPort": "[if(not(empty(parameters('imageName'))), 8080, 80)]",
+            "allowInsecure": false,
+            "traffic": [
+              {
+                "latestRevision": true,
+                "weight": 100
+              }
+            ]
+          },
+          "registries": "[if(not(empty(parameters('imageName'))), createArray(createObject('server', reference(resourceId('Microsoft.ContainerRegistry/registries', parameters('containerRegistryName')), '2023-07-01').loginServer, 'identity', 'system')), createArray())]",
+          "secrets": "[if(not(empty(parameters('imageName'))), concat(createArray(createObject('name', 'azure-openai-api-key', 'value', parameters('azureOpenAiApiKey'))), if(not(empty(parameters('openAiApiKey'))), createArray(createObject('name', 'openai-api-key', 'value', parameters('openAiApiKey'))), createArray()), createArray(createObject('name', 'appinsights-cs', 'value', reference(resourceId('Microsoft.Insights/components', parameters('applicationInsightsName')), '2020-02-02').ConnectionString))), createArray())]"
+        },
+        "template": {
+          "containers": [
+            {
+              "image": "[if(not(empty(parameters('imageName'))), parameters('imageName'), 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest')]",
+              "name": "web",
+              "env": "[if(not(empty(parameters('imageName'))), concat(createArray(createObject('name', 'PORT', 'value', '8080'), createObject('name', 'AZURE_OPENAI_ENDPOINT', 'value', parameters('azureOpenAiEndpoint')), createObject('name', 'AZURE_OPENAI_API_KEY', 'secretRef', 'azure-openai-api-key'), createObject('name', 'STAC_API_URL', 'value', 'https://planetarycomputer.microsoft.com/api/stac/v1'), createObject('name', 'CORS_ORIGINS', 'value', format('https://{0}.azurecontainerapps.io', parameters('name')))), if(not(empty(parameters('openAiApiKey'))), createArray(createObject('name', 'OPENAI_API_KEY', 'secretRef', 'openai-api-key')), createArray()), createArray(createObject('name', 'APPLICATION_INSIGHTS_CONNECTION_STRING', 'secretRef', 'appinsights-cs'))), createArray())]",
+              "resources": {
+                "cpu": "[json('1.0')]",
+                "memory": "2Gi"
+              }
+            }
+          ],
+          "scale": {
+            "minReplicas": 1,
+            "maxReplicas": 10,
+            "rules": [
+              {
+                "name": "http-rule",
+                "http": {
+                  "metadata": {
+                    "concurrentRequests": "100"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "condition": "[not(empty(parameters('imageName')))]",
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.ContainerRegistry/registries/{0}', parameters('containerRegistryName'))]",
+      "name": "[guid(subscription().id, resourceGroup().id, parameters('name'), 'acrPull')]",
+      "properties": {
+        "principalId": "[reference(resourceId('Microsoft.App/containerApps', parameters('name')), '2023-05-01', 'full').identity.principalId]",
+        "principalType": "ServicePrincipal",
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.App/containerApps', parameters('name'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "name": {
+      "type": "string",
+      "value": "[parameters('name')]"
+    },
+    "uri": {
+      "type": "string",
+      "value": "[format('https://{0}', reference(resourceId('Microsoft.App/containerApps', parameters('name')), '2023-05-01').configuration.ingress.fqdn)]"
+    }
+  }
+}

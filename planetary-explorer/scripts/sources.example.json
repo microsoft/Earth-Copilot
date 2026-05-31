@@ -1,0 +1,19 @@
+[
+  {
+    "slug": "noaa-gfs",
+    "kind": "html",
+    "url": "https://www.nco.ncep.noaa.gov/pmb/products/gfs/",
+    "metadata": {"agency": "NOAA", "product": "GFS"}
+  },
+  {
+    "slug": "noaa-hrrr",
+    "kind": "html",
+    "url": "https://rapidrefresh.noaa.gov/hrrr/",
+    "metadata": {"agency": "NOAA", "product": "HRRR"}
+  },
+  {
+    "slug": "stac-noaa-mrms-qpe",
+    "kind": "stac",
+    "url": "https://planetarycomputer.microsoft.com/api/stac/v1/collections/noaa-mrms-qpe-1h-pass2"
+  }
+]

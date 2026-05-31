@@ -1,0 +1,107 @@
+# Azure Functions Core - Latest stable versions for Python 3.12
+azure-functions>=1.18.0
+# azure-functions-worker>=1.1.9  # Removed - conflicts with containerized deployment
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+# python-multipart is required by FastAPI Form/File handlers. Missing in
+# image :20260519142511 caused revision 50 to ActivationFail; pinning it
+# here so every build picks it up regardless of which extras pull it in.
+python-multipart>=0.0.9
+
+# Semantic Kernel — RETIRED (Wave 5). Replaced by sk_shim.py, a minimal
+# AsyncAzureOpenAI-backed compatibility layer that mirrors the SK API
+# surface used by semantic_translator.py without the runtime dependency.
+# semantic-kernel>=1.0.0,<2.0.0
+
+# Azure SDK dependencies - Updated to stable versions
+azure-identity>=1.15.0
+azure-core>=1.29.0
+azure-ai-projects>=1.0.0
+azure-ai-agents>=1.1.0
+
+# Microsoft Agent Framework — CORE ONLY (no [all] extras).
+# Used by the ClarifierDecider Executor (agents/clarifier_agent/Executors/) so
+# the routing pipeline can be composed into a WorkflowBuilder graph. We pin
+# the *core* package only because `agent-framework[all]` drags in dozens of
+# optional integrations (chatkit, openai-agents, mem0, redis, durabletask,
+# foundry-local, copilotstudio, …) which forces scipy backtracking and broke
+# the Docker build in commit 0e607a2. The container-app code paths only need
+# the Executor / WorkflowBuilder / handler primitives, all of which live in
+# agent-framework-core.
+agent-framework-core>=1.0.0b1
+
+# HTTP client libraries - Pinned versions for stability
+aiohttp>=3.9.0,<4.0.0
+httpx>=0.25.0,<1.0.0
+requests>=2.31.0,<3.0.0
+websockets>=13.0.0,<16.0.0
+
+# JWT validation for Entra ID auth middleware (replaces Container Apps EasyAuth)
+PyJWT[crypto]>=2.8.0
+
+# Environment and configuration
+python-dotenv>=1.0.0
+
+# Geospatial and STAC functionality
+pystac-client>=0.7.0
+planetary-computer>=1.0.0
+shapely>=2.0.0
+geojson>=3.0.0
+stackstac>=0.4.0
+
+# GEOINT-specific dependencies - Full geospatial processing capabilities
+rasterio>=1.3.0  # COG raster download and analysis - Required for region-wide terrain analysis
+geopy>=2.4.0
+scikit-learn>=1.3.0
+geopandas>=0.14.0
+fiona>=1.9.0
+pyproj>=3.6.0
+
+# Raster data processing for GEOINT analysis
+xarray>=2023.1.0
+rioxarray>=0.15.0
+h5netcdf>=1.0.0
+h5py>=3.8.0
+fsspec>=2023.1.0
+pandas>=1.5.0
+numpy>=1.24.0,<2.0.0
+
+# Data processing - Pydantic v2 for compatibility
+pydantic>=2.5.0,<3.0.0
+# Pin openai to 1.x — pipeline/_aoai.py uses azure_ad_token_provider which is
+# rejected by AsyncAzureOpenAI's credential validation in openai 2.x.
+openai>=1.30.0,<2.0.0
+structlog>=23.2.0
+
+# Additional dependencies for SK 1.x and Azure Functions deployment
+nest-asyncio>=1.5.0
+typing-extensions>=4.8.0
+scipy>=1.11.0,<2.0.0
+# protobuf vulnerability fix - CVE requires >=3.18.3 or >=4.21.6
+protobuf>=4.21.6,<6.0.0
+cloudevents>=1.9.0
+defusedxml>=0.7.0
+jinja2>=3.1.0
+openapi-core>=0.18.0
+opentelemetry-api>=1.20.0
+opentelemetry-sdk>=1.20.0
+prance>=0.22.0
+pybars4>=0.9.0
+pydantic-settings>=2.0.0
+
+# Microsoft Teams Bot Framework integration
+botbuilder-core>=4.14.0,<5.0.0
+
+# Model Context Protocol client.
+#
+# Used by ``mcp_catalog_client.py`` to consume the upstream MPC Pro MCP
+# sidecar (Microsoft's ``geocatalog-mcp-server``). The historical
+# exclusion comment here was a stale workaround for the
+# now-decommissioned Azure Functions deployment path; on Container Apps
+# the SDK installs cleanly against the rest of the dependency graph
+# (verified May 2026 against pip 26.1, Python 3.12).
+mcp>=1.27.0,<2.0.0
+
+# Direct Delta Lake reads from OneLake for the site-audit skill (agents/site_audit.py).
+# Pure-Python rust-backed reader; avoids needing a Spark / Fabric SQL endpoint.
+deltalake>=0.18.0,<0.20.0
